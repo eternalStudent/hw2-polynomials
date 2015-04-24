@@ -19,7 +19,8 @@ struct arrayList* arrayList_new(void(*free_fn)(void*)){
 void arrayList_free(struct arrayList *list){
 	int i;
 	for(i = 0; i < list->length; i++)
-		if(list->array[i]) list->free_fn(list->array[i]);
+		if(list->array[i]) 
+			list->free_fn(list->array[i]);
 	free(list->array);
 	free(list);
 }

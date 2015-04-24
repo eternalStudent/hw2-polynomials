@@ -7,7 +7,11 @@ struct polynomial{
 
 struct polynomial* polynomial_new(char* name);
 
+void nothing(void* v);
+
 void polynomial_addCoefficient(struct polynomial *p, float coefficient, int pow);
+
+float polynomial_getCoefficient(struct polynomial *p, int i);
 
 int polynomial_rank(struct polynomial *p);
 
