@@ -49,7 +49,7 @@ static int arrayList_expand_internal(struct arrayList *list, int max){
 	return 0;
 }
 
-int arrayList_set(struct arrayList *list, int i, void *data){
+int arrayList_set(struct arrayList *list, void *data, int i){
 	if(arrayList_expand_internal(list, i+1))
 		return -1;
 	if(list->array[i]) 
@@ -61,7 +61,7 @@ int arrayList_set(struct arrayList *list, int i, void *data){
 }
 
 int arrayList_add(struct arrayList *list, void *data){
-	return arrayList_set(list, list->length, data);
+	return arrayList_set(list, data, list->length);
 }
 
 int arrayList_length(struct arrayList *list){

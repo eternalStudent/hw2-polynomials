@@ -11,7 +11,7 @@ void arrayList_free(struct arrayList *al);
 
 void* arrayList_get(struct arrayList *al, int i);
 
-int arrayList_set(struct arrayList *al, int i, void *data);
+int arrayList_set(struct arrayList *al, void *data, int i);
 
 int arrayList_add(struct arrayList *al, void *data);
 
