@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 struct polynomial* polynomial_new(char* name){
 	struct polynomial *p;
 	p = (struct polynomial*)calloc(1, sizeof(struct polynomial));
@@ -62,9 +63,10 @@ struct polynomial* polynomial_sum(struct polynomial* p1, struct polynomial* p2){
 	sum = polynomial_new("");
 	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
 	for (int power=0; power<=rank; power++){
-		float coefficient = polynomial_getCoefficient(p1, power)+polynomial_getCoefficient(p2, power);
-		printf("%f\n", coefficient);
-		polynomial_addCoefficient(sum, &coefficient, power);
+		float* coeffPointer = (float*)malloc(sizeof(float*));
+		*coeffPointer = polynomial_getCoefficient(p1, power)+polynomial_getCoefficient(p2, power);
+		printf("%f\n", *coeffPointer);
+		polynomial_addCoefficient(sum, coeffPointer, power);
 	}
 	return sum;
 }
