@@ -72,7 +72,7 @@ struct polynomial* polynomial_sum(struct polynomial* p1, struct polynomial* p2){
 
 struct polynomial* polynomial_subtract(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* subtraction;
-	subtraction = polynomial_new("");
+	subtraction = polynomial_new(NULL);
 	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
 	for (int power=0; power<=rank; power++){
 		float coefficient = polynomial_getCoefficient(p1, power)-polynomial_getCoefficient(p2, power);
@@ -82,14 +82,14 @@ struct polynomial* polynomial_subtract(struct polynomial* p1, struct polynomial*
 }
 
 struct polynomial* polynomial_derive(struct polynomial* p){
-	struct polynomial* derirative;
-	derirative = polynomial_new("");
+	struct polynomial* derivative;
+	derivative = polynomial_new(NULL);
 	int rank = polynomial_rank(p);
 	for (int power=1; power<=rank; power++){
 		float coefficient = power*polynomial_getCoefficient(p, power);
-		polynomial_addCoefficient(derirative, coefficient, power-1);
+		polynomial_addCoefficient(derivative, coefficient, power-1);
 	}
-	return derirative;
+	return derivative;
 }
 
 float polynomial_evaluate(struct polynomial* p, float x){
@@ -100,4 +100,29 @@ float polynomial_evaluate(struct polynomial* p, float x){
 		sum += coefficient*pow(x, power);
 	}
 	return sum;
+}
+
+struct polynomial* polynomial_multiplyByOneFactor(struct polynomial* p, float factorCoefficient, int factorPower){
+	struct polynomial* product;
+	product = polynomial_new(NULL);
+	int rank = polynomial_rank(p);
+	for (int power=0; power<=rank; power++){
+		float coefficient = polynomial_getCoefficient(p, power);
+		polynomial_addCoefficient(product, coefficient*factorCoefficient, power+factorPower);
+	}
+	return product;
+}
+
+struct polynomial* polynomial_multiply(struct polynomial* p1, struct polynomial* p2){
+	struct polynomial* sumOfProducts;
+	sumOfProducts = polynomial_new(NULL);
+	int rank = polynomial_rank(p1);
+	for (int power=0; power<rank; power++){
+		float coefficient = polynomial_getCoefficient(p1, power);
+		struct polynomial* product = polynomial_multiplyByOneFactor(p2, coefficient, power);
+		struct polynomial* temp = polynomial_sum(sumOfProducts, product);
+		polynomial_free(sumOfProducts);
+		sumOfProducts = temp;
+	}
+	return sumOfProducts;
 }

@@ -30,11 +30,16 @@ int main(){
 	float valueAt1 = polynomial_evaluate(p1, 1.0f);
 	printf("p1(1) = %f\n", valueAt1);
 	
+	struct polynomial* product = polynomial_multiplyByOneFactor(p1, 2.0, 3);
+	printf("2x^3*p1(x) = ");
+	polynomial_print(product);
+	
 	polynomial_free(p1);
 	polynomial_free(p2);
 	polynomial_free(sum);
 	polynomial_free(subtraction);
-	polynomial_free(derirative);
+	polynomial_free(derivative);
+	polynomial_free(product);
 	
 	return 0;
 }

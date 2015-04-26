@@ -25,3 +25,7 @@ struct polynomial* polynomial_derive(struct polynomial* p);
 
 float polynomial_evaluate(struct polynomial* p, float x);
 
+struct polynomial* polynomial_multiplyByOneFactor(struct polynomial* p, float factorCoefficient, int factorPower);
+
+struct polynomial* polynomial_multiply(struct polynomial* p1, struct polynomial* p2);
+
