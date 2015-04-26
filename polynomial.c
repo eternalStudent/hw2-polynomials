@@ -1,19 +1,20 @@
 #include "polynomial.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 
 struct polynomial* polynomial_new(char* name){
 	struct polynomial *p;
 	p = (struct polynomial*)calloc(1, sizeof(struct polynomial));
-	p->coefficients = *arrayList_new(&nothing);
+	p->coefficients = *arrayList_new(&free);
 	p->name = name;
 }
 
-void nothing(void* v){}
-
-void polynomial_addCoefficient(struct polynomial *p, float* coefficient, int power){
-	arrayList_set(&(p->coefficients), (void*)coefficient, power);
+void polynomial_addCoefficient(struct polynomial *p, float coefficient, int power){
+	float* pointer = (float*)calloc(1, sizeof(float));
+	*pointer = coefficient;
+	arrayList_set(&(p->coefficients), (void*)pointer, power);
 }
 
 int polynomial_rank(struct polynomial *p){
@@ -49,7 +50,7 @@ void polynomial_print(struct polynomial *p){
 	printf("\n");
 }
 
-void polynomial_free(struct polynomial *p){
+void polynomial_free(struct polynomial* p){
 	arrayList_free(&(p->coefficients));
 	/*free(p);*/
 }
@@ -60,13 +61,43 @@ static int max(int a, int b){
 
 struct polynomial* polynomial_sum(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* sum;
-	sum = polynomial_new("");
+	sum = polynomial_new(NULL);
 	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
 	for (int power=0; power<=rank; power++){
-		float* coeffPointer = (float*)malloc(sizeof(float*));
-		*coeffPointer = polynomial_getCoefficient(p1, power)+polynomial_getCoefficient(p2, power);
-		printf("%f\n", *coeffPointer);
-		polynomial_addCoefficient(sum, coeffPointer, power);
+		float coefficient = polynomial_getCoefficient(p1, power)+polynomial_getCoefficient(p2, power);
+		polynomial_addCoefficient(sum, coefficient, power);
+	}
+	return sum;
+}
+
+struct polynomial* polynomial_subtract(struct polynomial* p1, struct polynomial* p2){
+	struct polynomial* subtraction;
+	subtraction = polynomial_new("");
+	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
+	for (int power=0; power<=rank; power++){
+		float coefficient = polynomial_getCoefficient(p1, power)-polynomial_getCoefficient(p2, power);
+		polynomial_addCoefficient(subtraction, coefficient, power);
+	}
+	return subtraction;
+}
+
+struct polynomial* polynomial_derive(struct polynomial* p){
+	struct polynomial* derirative;
+	derirative = polynomial_new("");
+	int rank = polynomial_rank(p);
+	for (int power=1; power<=rank; power++){
+		float coefficient = power*polynomial_getCoefficient(p, power);
+		polynomial_addCoefficient(derirative, coefficient, power-1);
+	}
+	return derirative;
+}
+
+float polynomial_evaluate(struct polynomial* p, float x){
+	float sum = 0;
+	int rank = polynomial_rank(p);
+	for (int power=0; power<=rank; power++){
+		float coefficient = polynomial_getCoefficient(p, power);
+		sum += coefficient*pow(x, power);
 	}
 	return sum;
 }
