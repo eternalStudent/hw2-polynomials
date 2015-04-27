@@ -7,14 +7,18 @@
 struct polynomial* polynomial_new(char* name){
 	struct polynomial *p;
 	p = (struct polynomial*)calloc(1, sizeof(struct polynomial));
+	if (!p)
+		return NULL;
 	p->coefficients = *arrayList_new(&free);
 	p->name = name;
 }
 
-void polynomial_addCoefficient(struct polynomial *p, float coefficient, int power){
+int polynomial_addCoefficient(struct polynomial *p, float coefficient, int power){
 	float* pointer = (float*)calloc(1, sizeof(float));
+	if (!pointer)
+		return 1;
 	*pointer = coefficient;
-	arrayList_set(&(p->coefficients), (void*)pointer, power);
+	return arrayList_set(&(p->coefficients), (void*)pointer, power);
 }
 
 int polynomial_rank(struct polynomial *p){

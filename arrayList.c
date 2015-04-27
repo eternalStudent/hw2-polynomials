@@ -5,7 +5,8 @@
 struct arrayList* arrayList_new(void(*free_fn)(void*)){
 	struct arrayList *list;
 	list = (struct arrayList*)calloc(1, sizeof(struct arrayList));
-	if(!list) return NULL;
+	if(!list)
+		return NULL;
 	list->size = 4;
 	list->length = 0;
 	list->free_fn = free_fn;
