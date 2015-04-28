@@ -1,5 +1,4 @@
-#include "arrayList.h"
-#include "polynomial.h"
+#include "polynomial.c"
 
 
 struct arrayList* polynomialList_new();
