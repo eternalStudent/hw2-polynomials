@@ -1,7 +1,7 @@
 #include "arrayList.c"
 
 struct polynomial{
-	struct arrayList coefficients;
+	struct arrayList* coefficients;
 	char* name;
 };
 

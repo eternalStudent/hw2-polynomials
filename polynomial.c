@@ -9,7 +9,7 @@ struct polynomial* polynomial_new(char* name){
 	p = (struct polynomial*)calloc(1, sizeof(struct polynomial));
 	if (!p)
 		return NULL;
-	p->coefficients = *arrayList_new(&free);
+	p->coefficients = arrayList_new(&free);
 	p->name = name;
 }
 
@@ -18,15 +18,15 @@ int polynomial_addCoefficient(struct polynomial *p, float coefficient, int power
 	if (!pointer)
 		return 1;
 	*pointer = coefficient;
-	return arrayList_set(&(p->coefficients), (void*)pointer, power);
+	return arrayList_set(p->coefficients, (void*)pointer, power);
 }
 
 int polynomial_rank(struct polynomial *p){
-	return arrayList_length(&(p->coefficients))-1;
+	return arrayList_length(p->coefficients)-1;
 }
 
 float polynomial_getCoefficient(struct polynomial *p, int power){
-	void* pointer = arrayList_get(&(p->coefficients), power);
+	void* pointer = arrayList_get(p->coefficients, power);
 	return (pointer == 0 || pointer == NULL)? 0: *((float *)pointer);
 }
 
@@ -55,8 +55,8 @@ void polynomial_print(struct polynomial *p){
 }
 
 void polynomial_free(struct polynomial* p){
-	arrayList_free(&(p->coefficients));
-	/*free(p);*/
+	arrayList_free(p->coefficients);
+	free(p);
 }
 
 static int max(int a, int b){
