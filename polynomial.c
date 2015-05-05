@@ -43,8 +43,10 @@ void polynomial_print(struct polynomial *p){
 			if (first_non_zero && coefficient > 0)
 				printf("+");
 			first_non_zero = 1;
-			if (coefficient != 1 || power == 0)	
+			if ((coefficient != 1 && coefficient != -1) || power == 0)	
 				printf("%.2f", coefficient);
+			if (coefficient == -1)
+				printf("-");
 			if (power > 0)
 				printf("x");
 			if (power > 1)
