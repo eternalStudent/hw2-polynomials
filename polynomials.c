@@ -14,8 +14,7 @@ static int compile_regex (regex_t* r, const char* regex_text){
     if (status != 0) {
 		char error_message[MAX_ERROR_MSG];
 		regerror(status, r, error_message, MAX_ERROR_MSG);
-        printf("Regex error compiling '%s': %s\n",
-                 regex_text, error_message);
+        printf("Regex error compiling '%s': %s\n", regex_text, error_message);
         return 1;
     }
     return 0;
@@ -80,12 +79,12 @@ int ax(float* coefficient, int* power, const char* text){
 	regex_t r; 	
 	regmatch_t matches[2];
 	
-	char* pattern = "\\s*-x\\s*\\^\\s*([[:digit:]]+)\\s*";
+	char* pattern = "\\s*([\\+-]?[[:digit:]]+\\.?[[:digit:]]*)\\s*x\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, text, 2, matches, 0) == 0) {
 		int start = matches[1].rm_so;
-		*coefficient = -1;
-		*power = (int)strtol(text+start, NULL, 10);
+		*coefficient = (float)atof(text+start);
+		*power = 1;
 		regfree(&r);
 		return 0;
 	}
@@ -216,9 +215,8 @@ struct polynomial* stringToPolynomial (char* name, char* str){
 		
         if (match[0].rm_so != -1) {   
 			int start = match[0].rm_so + (pos - str);
-            int finish = match[0].rm_eo + (pos - str);
-			char* substring = calloc(1, sizeof(char));
-			strncpy(substring, str+start, finish-start);
+            int range = match[0].rm_eo + (pos - str) - start;
+			char* substring = getSubstring(str, start, range);
 			float coefficient;
 			int power;
             getFactor(&coefficient, &power, substring);
@@ -231,7 +229,6 @@ struct polynomial* stringToPolynomial (char* name, char* str){
         }
         pos += match[0].rm_eo;
     }
-	regfree(&r);
 }
 
 int isValidName(char* name){
@@ -247,13 +244,11 @@ int definePolynomial(char* str){
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
 		int start = matches[2].rm_so;
-		int finish = matches[2].rm_eo;
-		char* polynomialString = calloc(1, sizeof(char));
-		strncpy(polynomialString, str+start, finish-start);
+		int range = matches[2].rm_eo-start;
+		char* polynomialString = getSubstring(str, start, range);
 		start = matches[1].rm_so;
-		finish = matches[1].rm_eo;
-		char* name = calloc(1, sizeof(char));
-		strncpy(name, str+start, finish-start);
+		range = matches[1].rm_eo - start;
+		char* name = getSubstring(str, start, range);
 		while(1){
 			if (!isPolynomial(polynomialString)){
 				break;
@@ -270,6 +265,7 @@ int definePolynomial(char* str){
 				break;
 			}
 			polynomialList_add(polynomials, p);
+			polynomial_print(p);
 			break;
 		}
 		regfree(&r);
@@ -323,5 +319,8 @@ int main(){
 		if (error == -2)
 			printf("unknown command\n");
 	}
+	
+	struct polynomial* p = (struct polynomial*)polynomials->array[0];
+	polynomialList_free(polynomials);
 	return 0;
 }
