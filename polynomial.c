@@ -4,12 +4,15 @@
 #include <math.h>
 
 
-struct polynomial* polynomial_new(char* name){
+struct polynomial* polynomial_new(char* name, int size){
 	struct polynomial* p;
 	p = (struct polynomial*)calloc(1, sizeof(struct polynomial));
 	if (!p)
 		return NULL;
 	p->coefficients = arrayList_new(&free);
+	p->name = (char*)calloc(sizeof(char*), size);
+	if (!(p->name))
+		return NULL;
 	p->name = name;
 	return p;
 }
@@ -60,6 +63,7 @@ void polynomial_print(struct polynomial *p){
 void polynomial_free(void* data){
 	struct polynomial* p = (struct polynomial*)data;
 	arrayList_free(p->coefficients);
+	free(p->name);
 	free(p);
 }
 
@@ -69,7 +73,7 @@ static int max(int a, int b){
 
 struct polynomial* polynomial_sum(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* sum;
-	sum = polynomial_new(NULL);
+	sum = polynomial_new(NULL, 0);
 	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
 	for (int power=0; power<=rank; power++){
 		float coefficient = polynomial_getCoefficient(p1, power)+polynomial_getCoefficient(p2, power);
@@ -80,7 +84,7 @@ struct polynomial* polynomial_sum(struct polynomial* p1, struct polynomial* p2){
 
 struct polynomial* polynomial_subtract(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* subtraction;
-	subtraction = polynomial_new(NULL);
+	subtraction = polynomial_new(NULL, 0);
 	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
 	for (int power=0; power<=rank; power++){
 		float coefficient = polynomial_getCoefficient(p1, power)-polynomial_getCoefficient(p2, power);
@@ -91,7 +95,7 @@ struct polynomial* polynomial_subtract(struct polynomial* p1, struct polynomial*
 
 struct polynomial* polynomial_derive(struct polynomial* p){
 	struct polynomial* derivative;
-	derivative = polynomial_new(NULL);
+	derivative = polynomial_new(NULL, 0);
 	int rank = polynomial_rank(p);
 	for (int power=1; power<=rank; power++){
 		float coefficient = power*polynomial_getCoefficient(p, power);
@@ -112,7 +116,7 @@ float polynomial_evaluate(struct polynomial* p, float x){
 
 struct polynomial* polynomial_multiplyByOneFactor(struct polynomial* p, float factorCoefficient, int factorPower){
 	struct polynomial* product;
-	product = polynomial_new(NULL);
+	product = polynomial_new(NULL, 0);
 	int rank = polynomial_rank(p);
 	for (int power=0; power<=rank; power++){
 		float coefficient = polynomial_getCoefficient(p, power);
@@ -123,7 +127,7 @@ struct polynomial* polynomial_multiplyByOneFactor(struct polynomial* p, float fa
 
 struct polynomial* polynomial_multiply(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* sumOfProducts;
-	sumOfProducts = polynomial_new(NULL);
+	sumOfProducts = polynomial_new(NULL, 0);
 	int rank = polynomial_rank(p1);
 	for (int power=0; power<rank; power++){
 		float coefficient = polynomial_getCoefficient(p1, power);

@@ -194,8 +194,8 @@ char* getSubstring(char* str, int i, int range){
 	return substring;
 }
 
-struct polynomial* stringToPolynomial (char* name, char* str){
-    struct polynomial* p = polynomial_new(name);
+struct polynomial* stringToPolynomial (char* name, char* str, int size){
+    struct polynomial* p = polynomial_new(name, size);
 	if (p == NULL){
 		printf("allocation error\n");
 		return p;
@@ -258,7 +258,7 @@ int definePolynomial(char* str){
 				exitcode = -1;
 				break;
 			}
-			struct polynomial* p = stringToPolynomial(name, polynomialString);
+			struct polynomial* p = stringToPolynomial(name, polynomialString, range+1);
 			if (p == NULL){
 				printf("allocation error\n");
 				exitcode = -1;
@@ -319,8 +319,6 @@ int main(){
 		if (error == -2)
 			printf("unknown command\n");
 	}
-	
-	struct polynomial* p = (struct polynomial*)polynomials->array[0];
 	polynomialList_free(polynomials);
 	return 0;
 }

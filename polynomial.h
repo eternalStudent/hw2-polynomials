@@ -5,7 +5,7 @@ struct polynomial{
 	char* name;
 };
 
-struct polynomial* polynomial_new(char* name);
+struct polynomial* polynomial_new(char* name, int size);
 
 int polynomial_addCoefficient(struct polynomial *p, float coefficient, int pow);
 
