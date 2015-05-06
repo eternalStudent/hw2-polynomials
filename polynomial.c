@@ -5,12 +5,13 @@
 
 
 struct polynomial* polynomial_new(char* name){
-	struct polynomial *p;
+	struct polynomial* p;
 	p = (struct polynomial*)calloc(1, sizeof(struct polynomial));
 	if (!p)
 		return NULL;
 	p->coefficients = arrayList_new(&free);
 	p->name = name;
+	return p;
 }
 
 int polynomial_addCoefficient(struct polynomial *p, float coefficient, int power){
@@ -56,7 +57,8 @@ void polynomial_print(struct polynomial *p){
 	printf("\n");
 }
 
-void polynomial_free(struct polynomial* p){
+void polynomial_free(void* data){
+	struct polynomial* p = (struct polynomial*)data;
 	arrayList_free(p->coefficients);
 	free(p);
 }

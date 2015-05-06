@@ -15,7 +15,7 @@ int polynomial_rank(struct polynomial *p);
 
 void polynomial_print(struct polynomial *p);
 
-void polynomial_free(struct polynomial *p);
+void polynomial_free(void* data);
 
 struct polynomial* polynomial_sum(struct polynomial* p1, struct polynomial* p2);
 

@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <regex.h>
-#include "polynomial.c"
+#include "polynomialList.c"
 
 #define MAX_ERROR_MSG 0x1000
-        
+
+
+struct arrayList* polynomials;        
 
 static int compile_regex (regex_t* r, const char* regex_text){
     int status = regcomp (r, regex_text, REG_EXTENDED);
@@ -149,16 +151,16 @@ int getFactor(float* coefficient, int* power, const char* text){
 	if (ax_POW_b(coefficient, power, text) == 0)
 		return 0;
 	
+	/* ax case */
+    if (ax(coefficient, power, text) == 0)
+		return 0;
+	
 	/* -x^b case */
     if (M_x_POW_b(coefficient, power, text) == 0)
 		return 0;
 	
 	/* +x^b case */
     if (P_x_POW_b(coefficient, power, text) == 0)
-		return 0;
-	
-	/* ax case */
-    if (ax(coefficient, power, text) == 0)
 		return 0;
 	
 	/* -x case */
@@ -177,8 +179,24 @@ int getFactor(float* coefficient, int* power, const char* text){
 	return -1;
 }
 
-struct polynomial* stringToPolynomial (const char* str){
-    struct polynomial* p = polynomial_new("p1");
+int isPolynomial(const char* str){
+	regex_t r;
+	char* pattern = "(\\s*[\\+-]?[[:digit:]]+\\.?[[:digit:]]*\\s*)?\\s*(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*)?\\s*(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*\\^\\s*[[:digit:]]+\\s*)*";
+	compile_regex(&r, pattern);
+    regmatch_t matches[1];
+	if (regexec(&r, str, 1, matches, 0) == 0)
+		return 1;
+	return 0;
+}
+
+char* getSubstring(char* str, int i, int range){
+	char* substring = calloc(1, sizeof(char));
+	strncpy(substring, str+i, range);
+	return substring;
+}
+
+struct polynomial* stringToPolynomial (char* name, char* str){
+    struct polynomial* p = polynomial_new(name);
 	if (p == NULL){
 		printf("allocation error\n");
 		return p;
@@ -188,7 +206,7 @@ struct polynomial* stringToPolynomial (const char* str){
 	compile_regex(&r, pattern);
 	const char* pos = str;
     regmatch_t match[1];
-		
+	
     while (1) {
         int nomatch = regexec (&r, pos, 1, match, 0);
         if (nomatch){
@@ -196,39 +214,114 @@ struct polynomial* stringToPolynomial (const char* str){
             return p;
 		}	
 		
-        int start;
-        int finish;
         if (match[0].rm_so != -1) {   
-            start = match[0].rm_so + (pos - str);
-            finish = match[0].rm_eo + (pos - str);
+			int start = match[0].rm_so + (pos - str);
+            int finish = match[0].rm_eo + (pos - str);
 			char* substring = calloc(1, sizeof(char));
 			strncpy(substring, str+start, finish-start);
-			
 			float coefficient;
 			int power;
-			getFactor(&coefficient, &power, substring);
+            getFactor(&coefficient, &power, substring);
+			free(substring);
 			if (polynomial_addCoefficient(p, coefficient, power)){
 				printf("error adding coefficient\n");
+				regfree(&r);
 				return p;
-			}	
-			
-			free(substring);
+			}
         }
         pos += match[0].rm_eo;
     }
 	regfree(&r);
 }
 
-int main(){
-	char polynomialString[256];
-	printf("enter a polynomial string: ");
-	scanf("%s", polynomialString);
-	struct polynomial* p = stringToPolynomial(polynomialString);
-	if (p == NULL){
-		printf("program exited with errors\n");
-		return -1;
+int isValidName(char* name){
+	return 1;
+}
+
+int definePolynomial(char* str){
+	regex_t r;
+	regmatch_t matches[3];
+	int exitcode = 1; /*did not match*/
+	
+	char* pattern = "\\s*(\\w*)\\s*=\\s*(.*)\\s*";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 3, matches, 0) == 0 ){
+		int start = matches[2].rm_so;
+		int finish = matches[2].rm_eo;
+		char* polynomialString = calloc(1, sizeof(char));
+		strncpy(polynomialString, str+start, finish-start);
+		start = matches[1].rm_so;
+		finish = matches[1].rm_eo;
+		char* name = calloc(1, sizeof(char));
+		strncpy(name, str+start, finish-start);
+		while(1){
+			if (!isPolynomial(polynomialString)){
+				break;
+			}
+			if (!isValidName(name)){
+				printf("illegal variable name\n");
+				exitcode = -1;
+				break;
+			}
+			struct polynomial* p = stringToPolynomial(name, polynomialString);
+			if (p == NULL){
+				printf("allocation error\n");
+				exitcode = -1;
+				break;
+			}
+			polynomialList_add(polynomials, p);
+			break;
+		}
+		regfree(&r);
+		free(name);
+		free(polynomialString);		
+		exitcode = 0; /*compiled successfully*/
 	}
+	return exitcode;
+}
+
+int printPolynomial(char* name){
+	struct polynomial* p = polynomialList_getByName(polynomials, name);
+	if (p == NULL)
+		return 1;
 	polynomial_print(p);
-	polynomial_free(p);
+	return 0;
+}
+
+int executeCommand(char* command){
+	int error;
+	command = strtok(command, "\n");
+	
+	error = definePolynomial(command);
+	if (error != 1)
+		return error;
+	
+	error = printPolynomial(command);
+	if (error != 1)
+		return error;
+	
+	return -2;
+}
+
+int main(){
+	polynomials  = polynomialList_new();
+	char command[256];
+	printf("Welcome to polynomials!\n");
+	while (1){
+		int error;
+		printf("> ");
+		if (fgets(command, 256, stdin) == NULL){
+			printf("error in command\n");
+			continue;
+		}
+		if (strcmp(command, "quit\n") == 0){
+			break;
+		}	
+		error = executeCommand(command);
+		if (error == -1)	
+			printf("error reading command\n");
+		if (error == -2)
+			printf("unknown command\n");
+	}
 	return 0;
 }
