@@ -38,6 +38,7 @@ float polynomial_getCoefficient(struct polynomial *p, int power){
 void polynomial_print(struct polynomial *p){
 	int rank = polynomial_rank(p);
 	if (rank == -1){
+		printf("rank is -1\n");
 		printf("0\n");
 		return;
 	}
@@ -129,11 +130,16 @@ struct polynomial* polynomial_multiplyByOneFactor(struct polynomial* p, float fa
 struct polynomial* polynomial_multiply(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* sumOfProducts;
 	sumOfProducts = polynomial_new(NULL);
+	printf("first print\n");
 	int rank = polynomial_rank(p1);
 	for (int power=0; power<rank; power++){
 		float coefficient = polynomial_getCoefficient(p1, power);
 		struct polynomial* product = polynomial_multiplyByOneFactor(p2, coefficient, power);
+		printf("product is\n");
+		polynomial_print(product);
 		struct polynomial* temp = polynomial_sum(sumOfProducts, product);
+		printf("temp is\n");
+		polynomial_print(temp);
 		polynomial_free(sumOfProducts);
 		sumOfProducts = temp;
 	}

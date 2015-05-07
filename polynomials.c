@@ -260,6 +260,7 @@ int definePolynomial(char* str){
 	char* pattern = "\\s*(\\w*)\\s*=\\s*(.*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
+		printf("matched definePolynomial\n");
 		int start = matches[2].rm_so;
 		int range = matches[2].rm_eo-start;
 		char* polynomialString = getSubstring(str, start, range);
@@ -324,6 +325,7 @@ int summation(char* str){
 	char* pattern = "\\s*(\\w*)\\s*\\+\\s*(\\w*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
+		printf("matched summation\n");
 		char* name1;
 		char* name2;
 		int i;
@@ -333,7 +335,7 @@ int summation(char* str){
 			name1 = getSubstring(str, start, range);
 			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
 			if (p1 == NULL){
-				printf("unknown polynomial '%s'\n", name1);
+				printf("unknown polynomial %s\n", name1);
 				exitcode = -1;
 				break;
 			}
@@ -342,7 +344,7 @@ int summation(char* str){
 			name2 = getSubstring(str, start, range);
 			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
 			if (p2 == NULL){
-				printf("unknown polynomial '%s'\n", name2);
+				printf("unknown polynomial %s\n", name2);
 				exitcode = -1;
 				break;
 			}
@@ -359,6 +361,169 @@ int summation(char* str){
 	return exitcode;
 }
 
+int subtraction(char* str){
+	regex_t r;
+	regmatch_t matches[3];
+	int exitcode = 1; /*did not match*/
+	
+	char* pattern = "\\s*(\\w*)\\s*\\-\\s*(\\w*)\\s*";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 3, matches, 0) == 0 ){
+		printf("matched subtraction\n");
+		char* name1;
+		char* name2;
+		int i;
+		while (1){
+			int start = matches[1].rm_so;
+			int range = matches[1].rm_eo-start;
+			name1 = getSubstring(str, start, range);
+			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
+			if (p1 == NULL){
+				printf("unknown polynomial %s\n", name1);
+				exitcode = -1;
+				break;
+			}
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo;
+			name2 = getSubstring(str, start, range);
+			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
+			if (p2 == NULL){
+				printf("unknown polynomial %s\n", name2);
+				exitcode = -1;
+				break;
+			}
+			struct polynomial* difference = polynomial_subtract(p1, p2);
+			polynomial_print(difference);
+			exitcode = 0;
+			break;
+		}	
+		regfree(&r);
+		free(name1);
+		free(name2);
+		exitcode = 0; /*compiled successfully*/
+	}
+	return exitcode;
+}
+
+int multiplication(char* str){
+	regex_t r;
+	regmatch_t matches[3];
+	int exitcode = 1; /*did not match*/
+	
+	char* pattern = "\\s*(\\w*)\\s*\\*\\s*(\\w*)\\s*";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 3, matches, 0) == 0 ){
+		printf("matched multiplication\n");
+		char* name1;
+		char* name2;
+		int i;
+		while (1){
+			int start = matches[1].rm_so;
+			int range = matches[1].rm_eo-start;
+			name1 = getSubstring(str, start, range);
+			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
+			if (p1 == NULL){
+				printf("unknown polynomial %s\n", name1);
+				exitcode = -1;
+				break;
+			}
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo;
+			name2 = getSubstring(str, start, range);
+			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
+			if (p2 == NULL){
+				printf("unknown polynomial %s\n", name2);
+				exitcode = -1;
+				break;
+			}
+			struct polynomial* product = polynomial_multiply(p1, p2);
+			polynomial_print(product);
+			exitcode = 0;
+			break;
+		}	
+		regfree(&r);
+		free(name1);
+		free(name2);
+		exitcode = 0; /*compiled successfully*/
+	}
+	return exitcode;
+}
+
+int derivation(char* str) {
+	regex_t r; 	
+	regmatch_t matches[2];
+	int exitcode = 1; /*did not match*/
+	char* pattern = "^der[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 2, matches, 0) == 0){
+		printf("matched derivation\n");
+		int i;
+		char* name;
+		while(1){	
+			int start = matches[1].rm_so;
+			int range = matches[1].rm_eo-start;
+			char* name = getSubstring(str, start, range);
+			struct polynomial* polyToDerive = polynomialList_getByName(polynomials, name, &i);
+			if (polyToDerive == NULL){
+				printf ("unknown polynomial %s\n",name);
+				exitcode = -1;
+				break;
+			}
+			
+			struct polynomial* derivative = polynomial_derive(polyToDerive);	
+			polynomial_print(derivative);
+			regfree(&r);
+			free(name);
+			exitcode = 0;
+			break;
+			}				
+		}
+	return exitcode;
+}
+
+
+int evaluation(char* str) {
+	regex_t r; 	
+	regmatch_t matches[3];
+	int exitcode = 1; /*did not match*/
+	char* pattern = "^eval[[:space:]]+(\\w*)[[:space:]]+([-]?[0-9]+\\.?[0-9]*)$";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 3, matches, 0) == 0){
+		printf("matched evaluation\n");
+		int i;
+		char* name;
+		float number;
+		while(1){	
+			int start = matches[1].rm_so;
+			int range = matches[1].rm_eo-start;
+			char* name = getSubstring(str, start, range);
+			
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo-start;
+			
+			const char* numberAsString = getSubstring(str, start, range);
+			number = atof(numberAsString);
+			
+			struct polynomial* polyToEvaluate = polynomialList_getByName(polynomials, name, &i);
+			if (polyToEvaluate == NULL){
+				printf ("unknown polynomial %s\n",name);
+				exitcode = -1;
+				break;
+			}
+			
+			float evaluation = polynomial_evaluate(polyToEvaluate, number);	
+			printf("%.2f\n", evaluation);
+			regfree(&r);
+			free(name);
+			exitcode = 0;
+			break;
+			}				
+		}
+	return exitcode;
+}
+
+
+
 int executeCommand(char* command){
 	int error;
 	command = strtok(command, "\n");
@@ -367,13 +532,31 @@ int executeCommand(char* command){
 	if (error != 1)
 		return error;
 	
+	error = derivation(command);
+	if (error != 1)
+		return error;
+	
+	error = evaluation(command);
+	if (error != 1)
+		return error;
+	
 	error = summation(command);
+	if (error != 1)
+		return error;
+	
+	error = subtraction(command);
+	if (error != 1)
+		return error;
+	
+	error = multiplication(command);
 	if (error != 1)
 		return error;
 	
 	error = printPolynomial(command);
 	if (error != 1)
 		return error;
+	
+	
 	
 	printf("unknown command\n");
 	return -2;
