@@ -231,8 +231,25 @@ struct polynomial* stringToPolynomial (char* name, char* str, int size){
     }
 }
 
-int isValidName(char* name){
-	return 1;
+int isValidName(char* name, struct arrayList* polynomials){
+	/* checks if name is legal */
+	regex_t r;
+	regmatch_t matches[3];
+	int exitCodeValid = 1; /*is valid*/
+	char* pattern = "^[A-Za-z][A-Za-z0-9]*$";
+	compile_regex(&r, pattern);
+	if (regexec(&r, name, 3, matches, 0) != 0 ){
+		exitCodeValid = 0;
+	}
+	
+	/* checks if name is identical to a legal command */
+	int isCommandDer = strcmp(name, "der\0");
+	int isCommandEval = strcmp (name, "eval\0");
+	int isCommandQuit = strcmp (name, "quit\0");
+	if (isCommandDer==0 | isCommandEval==0 | isCommandQuit==0){
+		exitCodeValid = 0;
+	}
+	return exitCodeValid;
 }
 
 int definePolynomial(char* str){
@@ -253,7 +270,7 @@ int definePolynomial(char* str){
 			if (!isPolynomial(polynomialString)){
 				break;
 			}
-			if (!isValidName(name)){
+			if (!isValidName(name, polynomials)){
 				printf("illegal variable name\n");
 				exitcode = -1;
 				break;
