@@ -281,7 +281,18 @@ int definePolynomial(char* str){
 				exitcode = -1;
 				break;
 			}
-			polynomialList_add(polynomials, p);
+			int i;
+			if (polynomialList_getByName(polynomials, name, &i) != NULL){
+				polynomialList_update(polynomials, p, i);
+				printf("updated %s\n", name);
+			}
+			else if (polynomialList_add(polynomials, p)){
+				printf("allocation error\n");
+				exitcode = -1;
+				break;
+			}
+			else
+				printf("created %s\n", name);
 			polynomial_print(p);
 			break;
 		}
@@ -294,11 +305,51 @@ int definePolynomial(char* str){
 }
 
 int printPolynomial(char* name){
-	struct polynomial* p = polynomialList_getByName(polynomials, name);
+	struct polynomial* p = polynomialList_getByName(polynomials, name, NULL);
 	if (p == NULL)
 		return 1;
 	polynomial_print(p);
 	return 0;
+}
+
+int summation(char* str){
+	regex_t r;
+	regmatch_t matches[3];
+	int exitcode = 1; /*did not match*/
+	
+	char* pattern = "\\s*(\\w*)\\s*+\\s*(\\w*)\\s*";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 3, matches, 0) == 0 ){
+		char* name;
+		while (1){
+			int start = matches[1].rm_so;
+			int range = matches[1].rm_eo-start;
+			name = getSubstring(str, start, range);
+			struct polynomial* p1 = polynomialList_getByName(polynomials, name, NULL);
+			if (p1 == NULL){
+				printf("unknown polynomial %s\n", name);
+				exitcode = -1;
+				break;
+			}
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo - start;
+			name = getSubstring(str, start, range);
+			struct polynomial* p2 = polynomialList_getByName(polynomials, name, NULL);
+			if (p2 == NULL){
+				printf("unknown polynomial %s\n", name);
+				exitcode = -1;
+				break;
+			}
+			struct polynomial* sum = polynomial_sum(p1, p2);
+			polynomial_print(sum);
+			exitcode = 0;
+			break;
+		}	
+		regfree(&r);
+		free(name);
+		exitcode = 0; /*compiled successfully*/
+	}
+	return exitcode;
 }
 
 int executeCommand(char* command){
@@ -334,7 +385,7 @@ int main(){
 		if (error == -1)	
 			printf("error reading command\n");
 		if (error == -2)
-			printf("unknown command\n");
+			printf("unknown polynomial %s\n", command);
 	}
 	polynomialList_free(polynomials);
 	return 0;
