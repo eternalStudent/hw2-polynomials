@@ -194,8 +194,8 @@ char* getSubstring(char* str, int i, int range){
 	return substring;
 }
 
-struct polynomial* stringToPolynomial (char* name, char* str, int size){
-    struct polynomial* p = polynomial_new(name, size);
+struct polynomial* stringToPolynomial (char* name, char* str){
+    struct polynomial* p = polynomial_new(name);
 	if (p == NULL){
 		printf("allocation error\n");
 		return p;
@@ -231,7 +231,7 @@ struct polynomial* stringToPolynomial (char* name, char* str, int size){
     }
 }
 
-int isValidName(char* name, struct arrayList* polynomials){
+int isValidName(char* name){
 	/* checks if name is legal */
 	regex_t r;
 	regmatch_t matches[3];
@@ -270,12 +270,12 @@ int definePolynomial(char* str){
 			if (!isPolynomial(polynomialString)){
 				break;
 			}
-			if (!isValidName(name, polynomials)){
+			if (!isValidName(name)){
 				printf("illegal variable name\n");
 				exitcode = -1;
 				break;
 			}
-			struct polynomial* p = stringToPolynomial(name, polynomialString, range+1);
+			struct polynomial* p = stringToPolynomial(name, polynomialString);
 			if (p == NULL){
 				printf("allocation error\n");
 				exitcode = -1;
@@ -293,7 +293,6 @@ int definePolynomial(char* str){
 			}
 			else
 				printf("created %s\n", name);
-			polynomial_print(p);
 			break;
 		}
 		regfree(&r);
@@ -305,9 +304,14 @@ int definePolynomial(char* str){
 }
 
 int printPolynomial(char* name){
-	struct polynomial* p = polynomialList_getByName(polynomials, name, NULL);
-	if (p == NULL)
+	if (!isValidName(name))
 		return 1;
+	int i;
+	struct polynomial* p = polynomialList_getByName(polynomials, name, &i);
+	if (p == NULL){
+		printf("unknown polynomial %s\n", name);
+		return 1;
+	}	
 	polynomial_print(p);
 	return 0;
 }
@@ -317,26 +321,28 @@ int summation(char* str){
 	regmatch_t matches[3];
 	int exitcode = 1; /*did not match*/
 	
-	char* pattern = "\\s*(\\w*)\\s*+\\s*(\\w*)\\s*";
+	char* pattern = "\\s*(\\w*)\\s*\\+\\s*(\\w*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
-		char* name;
+		char* name1;
+		char* name2;
+		int i;
 		while (1){
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
-			name = getSubstring(str, start, range);
-			struct polynomial* p1 = polynomialList_getByName(polynomials, name, NULL);
+			name1 = getSubstring(str, start, range);
+			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
 			if (p1 == NULL){
-				printf("unknown polynomial %s\n", name);
+				printf("unknown polynomial '%s'\n", name1);
 				exitcode = -1;
 				break;
 			}
 			start = matches[2].rm_so;
-			range = matches[2].rm_eo - start;
-			name = getSubstring(str, start, range);
-			struct polynomial* p2 = polynomialList_getByName(polynomials, name, NULL);
+			range = matches[2].rm_eo;
+			name2 = getSubstring(str, start, range);
+			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
 			if (p2 == NULL){
-				printf("unknown polynomial %s\n", name);
+				printf("unknown polynomial '%s'\n", name2);
 				exitcode = -1;
 				break;
 			}
@@ -346,7 +352,8 @@ int summation(char* str){
 			break;
 		}	
 		regfree(&r);
-		free(name);
+		free(name1);
+		free(name2);
 		exitcode = 0; /*compiled successfully*/
 	}
 	return exitcode;
@@ -360,10 +367,15 @@ int executeCommand(char* command){
 	if (error != 1)
 		return error;
 	
+	error = summation(command);
+	if (error != 1)
+		return error;
+	
 	error = printPolynomial(command);
 	if (error != 1)
 		return error;
 	
+	printf("unknown command\n");
 	return -2;
 }
 
@@ -384,8 +396,6 @@ int main(){
 		error = executeCommand(command);
 		if (error == -1)	
 			printf("error reading command\n");
-		if (error == -2)
-			printf("unknown polynomial %s\n", command);
 	}
 	polynomialList_free(polynomials);
 	return 0;
