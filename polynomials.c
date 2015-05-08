@@ -264,6 +264,7 @@ int definePolynomial(char* str){
 	char* pattern = "\\s*(\\w*)\\s*=\\s*(.*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
+		printf("matched define polynomial\n");
 		int start = matches[2].rm_so;
 		int range = matches[2].rm_eo-start;
 		char* polynomialString = getSubstring(str, start, range);
@@ -312,6 +313,7 @@ int definePolynomial(char* str){
 }
 
 int printPolynomial(char* name){
+	printf("entered printPolynomial\n");
 	if (!isValidName(name))
 		return 1;
 	int i;
@@ -392,6 +394,7 @@ int subtraction(char* str){
 				exitcode = -1;
 				break;
 			}
+			
 			start = matches[2].rm_so;
 			range = matches[2].rm_eo;
 			name2 = getSubstring(str, start, range);
@@ -485,6 +488,7 @@ int derivation(char* str) {
 			struct polynomial* polyToDerive = polynomialList_getByName(polynomials, name, &i);
 			if (polyToDerive == NULL){
 				printf ("unknown polynomial %s\n",name);
+				free(name);
 				exitcode = -1;
 				break;
 			}
@@ -502,6 +506,102 @@ int derivation(char* str) {
 		regfree(&r);
 	}
 	return exitcode;
+}
+
+
+int compundDerivation (char* str){
+	regex_t r; 	
+	regmatch_t matches[3];
+	int exitcode = 1; /*did not match*/
+	char* pattern = "^([A-Za-z][A-Za-z0-9]*)[[:space:]]*=[[:space:]]*der[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 3, matches, 0) == 0){
+		printf("matched compound derivation\n");
+		int i;
+		char* destinationName;
+		char* sourceName;
+		while(1) {
+		
+		int start = matches[1].rm_so;
+		int range = matches[1].rm_eo-start;
+		char* destinationName = getSubstring(str, start, range);
+		
+		if (!isValidName(destinationName)){
+				printf("illegal variable name\n");
+				free(destinationName);
+				free(sourceName);
+				regfree(&r);	
+				exitcode = -1;
+				break;
+			}
+				
+		start = matches[2].rm_so;
+		range = matches[2].rm_eo-start;
+		char* sourceName = getSubstring(str, start, range);
+		
+		struct polynomial* source = polynomialList_getByName(polynomials, sourceName, &i);
+		if (source == NULL){
+			printf ("unknown polynomial %s\n",sourceName);
+			free(destinationName);
+			free(sourceName);
+			regfree(&r);	
+			exitcode = -1;
+			break;
+		}
+			
+		struct polynomial* derivative = polynomial_derive(source);
+		if (derivative == NULL){
+			printf ("allocation error\n");
+			free(destinationName);
+			free(sourceName);
+			regfree(&r);	
+			exitcode = -1;
+			break;
+		}
+		
+		derivative->name = calloc(1, sizeof(char*));
+		if (!(derivative->name)){
+			free(destinationName);
+			free(sourceName);
+			regfree(&r);	
+			exitcode = -1;
+			printf ("allocation error\n");
+			break;
+		}
+		if (destinationName != NULL){
+			strcpy(derivative->name, destinationName);
+			}
+		if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
+				polynomialList_update(polynomials, derivative, i);
+				printf("updated %s\n", destinationName);
+				free(destinationName);
+				free(sourceName);
+				regfree(&r);	
+			}
+		else if (polynomialList_add(polynomials, derivative)){
+			printf("allocation error\n");
+			free(destinationName);
+			free(sourceName);
+			regfree(&r);	
+			exitcode = -1;
+			break;
+			}
+		else{
+			printf("created %s\n", destinationName);
+			free(destinationName);
+			free(sourceName);
+			regfree(&r);	
+		}
+		exitcode = 0;
+		break;
+			}		
+		}
+	
+else {
+	regfree(&r);
+	}
+return exitcode;
+
 }
 
 
@@ -529,6 +629,9 @@ int evaluation(char* str) {
 			struct polynomial* polyToEvaluate = polynomialList_getByName(polynomials, name, &i);
 			if (polyToEvaluate == NULL){
 				printf ("unknown polynomial %s\n",name);
+				regfree(&r);
+				free (numberAsString);
+				free(name);
 				exitcode = -1;
 				break;
 			}
@@ -553,37 +656,48 @@ int evaluation(char* str) {
 
 int executeCommand(char* command){
 	int error;
+	int isCompound = 0;
 	command = strtok(command, "\n");
 	
-	error = definePolynomial(command);
+	
+	
+	error = compundDerivation(command);
+	if (error == 0) {
+		isCompound = 1;
+	}
 	if (error != 1)
 		return error;
 	
-	error = derivation(command);
-	if (error != 1)
-		return error;
+	if(!isCompound) {
+
+		error = definePolynomial(command);
+		if (error != 1)
+			return error;
 	
-	error = evaluation(command);
-	if (error != 1)
-		return error;
-	
-	error = summation(command);
-	if (error != 1)
-		return error;
-	
-	error = subtraction(command);
-	if (error != 1)
-		return error;
-	
-	error = multiplication(command);
-	if (error != 1)
-		return error;
-	
-	error = printPolynomial(command);
-	if (error != 1)
-		return error;
-	
-	printf("unknown command\n");
+		error = derivation(command);
+		if (error != 1)
+			return error;
+		
+		error = evaluation(command);
+		if (error != 1)
+			return error;
+		
+		error = summation(command);
+		if (error != 1)
+			return error;
+		
+		error = subtraction(command);
+		if (error != 1)
+			return error;
+		
+		error = multiplication(command);
+		if (error != 1)
+			return error;
+		
+		error = printPolynomial(command);
+		if (error != 1)
+			return error;
+		}
 	return -2;
 }
 
