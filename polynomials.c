@@ -373,6 +373,99 @@ int summation(char* str){
 	return exitcode;
 }
 
+
+
+int compoundSum(char* str){
+	regex_t r;
+	regmatch_t matches[4];
+	int exitcode = 1; /*did not match*/
+	
+	char* pattern = "^([A-Za-z][A-Za-z0-9]*)[[:space:]]*=[[:space:]]*([A-Za-z][A-Za-z0-9]*)[[:space:]]*\\+[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 4, matches, 0) == 0 ){
+		printf("matched compound sum\n");
+		char* firstSummedPolyName;
+		char* secondSummedPolyName;
+		char* destinationName;
+		int i;
+		while(1) {
+			int start = matches[1].rm_so;
+			int range = matches[1].rm_eo-start;
+			destinationName = getSubstring(str, start, range);
+			
+			if (!isValidName(destinationName)){
+				printf("illegal variable name\n");
+				exitcode = -1;
+				break;
+			}
+
+			
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo-start;
+			firstSummedPolyName = getSubstring(str, start, range);
+			
+			struct polynomial* firstSummedPoly = polynomialList_getByName(polynomials, firstSummedPolyName, &i);
+			if (firstSummedPoly == NULL){
+				printf("unknown polynomial %s\n", firstSummedPolyName);
+				exitcode = -1;
+				break;
+			}
+			
+			start = matches[3].rm_so;
+			range = matches[3].rm_eo-start;
+			secondSummedPolyName = getSubstring(str, start, range);
+			
+			struct polynomial* secondSummedPoly = polynomialList_getByName(polynomials, secondSummedPolyName, &i);
+			if (secondSummedPoly == NULL){
+				printf("unknown polynomial %s\n", secondSummedPolyName);
+				exitcode = -1;
+				break;
+			}
+			
+			struct polynomial* polySum = polynomial_sum(firstSummedPoly,secondSummedPoly);
+			
+			polySum->name = calloc(1, sizeof(char*));
+			if (!(polySum->name)){
+				exitcode = -1;
+				printf ("allocation error\n");
+				break;
+			}
+			if (destinationName != NULL){
+				strcpy(polySum->name, destinationName);
+			}
+			if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
+				polynomialList_update(polynomials, polySum, i);
+				printf("updated %s\n", destinationName);
+				break;
+			}
+			else if (polynomialList_add(polynomials, polySum)){
+				printf("allocation error\n");
+				exitcode = -1;
+				break;
+				}
+			else{
+				printf("created %s\n", destinationName);
+				break;
+				}		
+		}
+		
+		regfree(&r);
+		free(firstSummedPolyName);
+		free(secondSummedPolyName);
+		free(destinationName);
+		exitcode = 0; /* compiled successfully*/
+
+}
+
+	else {
+		regfree(&r);
+	}
+	return exitcode;
+}
+
+
+
+
 int subtraction(char* str){
 	regex_t r;
 	regmatch_t matches[3];
@@ -423,6 +516,93 @@ int subtraction(char* str){
 	return exitcode;
 }
 
+
+int compoundSubtraction(char* str){
+	regex_t r;
+	regmatch_t matches[4];
+	int exitcode = 1; /*did not match*/
+	
+	char* pattern = "^([A-Za-z][A-Za-z0-9]*)[[:space:]]*=[[:space:]]*([A-Za-z][A-Za-z0-9]*)[[:space:]]*-[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 4, matches, 0) == 0 ){
+		printf("matched compound subtraction\n");
+		char* firstSubtractedPolyName;
+		char* secondSubtractedPolyName;
+		char* destinationName;
+		int i;
+		while(1) {
+			int start = matches[1].rm_so;
+			int range = matches[1].rm_eo-start;
+			destinationName = getSubstring(str, start, range);
+			
+			if (!isValidName(destinationName)){
+				printf("illegal variable name\n");
+				exitcode = -1;
+				break;
+			}
+	
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo-start;
+			firstSubtractedPolyName = getSubstring(str, start, range);
+			
+			struct polynomial* firstSubtractedPoly = polynomialList_getByName(polynomials, firstSubtractedPolyName, &i);
+			if (firstSubtractedPoly == NULL){
+				printf("unknown polynomial %s\n", firstSubtractedPolyName);
+				exitcode = -1;
+				break;
+			}
+			
+			start = matches[3].rm_so;
+			range = matches[3].rm_eo-start;
+			secondSubtractedPolyName = getSubstring(str, start, range);
+			
+			struct polynomial* secondSubtractedPoly = polynomialList_getByName(polynomials, secondSubtractedPolyName, &i);
+			if (secondSubtractedPoly == NULL){
+				printf("unknown polynomial %s\n", secondSubtractedPolyName);
+				exitcode = -1;
+				break;
+			}
+			
+			struct polynomial* polyDifference = polynomial_subtract(firstSubtractedPoly,secondSubtractedPoly);
+			
+			polyDifference->name = calloc(1, sizeof(char*));
+			if (!(polyDifference->name)){
+				exitcode = -1;
+				printf ("allocation error\n");
+				break;
+			}
+			if (destinationName != NULL){
+				strcpy(polyDifference->name, destinationName);
+			}
+			if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
+				polynomialList_update(polynomials, polyDifference, i);
+				printf("updated %s\n", destinationName);
+				break;
+			}
+			else if (polynomialList_add(polynomials, polyDifference)){
+				printf("allocation error\n");
+				exitcode = -1;
+				break;
+				}
+			else{
+				printf("created %s\n", destinationName);
+				break;
+				}		
+		}
+		
+		regfree(&r);
+		free(firstSubtractedPolyName);
+		free(secondSubtractedPolyName);
+		free(destinationName);
+		exitcode = 0; /* compiled successfully*/
+	}
+	else {
+		regfree(&r);
+	}
+	return exitcode;
+}
+
+
 int multiplication(char* str){
 	regex_t r;
 	regmatch_t matches[3];
@@ -472,6 +652,92 @@ int multiplication(char* str){
 	return exitcode;
 }
 
+int compoundMultiplication(char* str){
+	regex_t r;
+	regmatch_t matches[4];
+	int exitcode = 1; /*did not match*/
+	
+	char* pattern = "^([A-Za-z][A-Za-z0-9]*)[[:space:]]*=[[:space:]]*([A-Za-z][A-Za-z0-9]*)[[:space:]]*\\*[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
+	compile_regex(&r, pattern);
+	if (regexec(&r, str, 4, matches, 0) == 0 ){
+		printf("matched compound multiplication\n");
+		char* firstMultipliedPolyName;
+		char* secondMultipliedPolyName;
+		char* destinationName;
+		int i;
+		while(1) {
+			int start = matches[1].rm_so;
+			int range = matches[1].rm_eo-start;
+			destinationName = getSubstring(str, start, range);
+			
+			if (!isValidName(destinationName)){
+				printf("illegal variable name\n");
+				exitcode = -1;
+				break;
+			}
+	
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo-start;
+			firstMultipliedPolyName = getSubstring(str, start, range);
+			
+			struct polynomial* firstMultipliedPoly = polynomialList_getByName(polynomials, firstMultipliedPolyName, &i);
+			if (firstMultipliedPoly == NULL){
+				printf("unknown polynomial %s\n", firstMultipliedPolyName);
+				exitcode = -1;
+				break;
+			}
+			
+			start = matches[3].rm_so;
+			range = matches[3].rm_eo-start;
+			secondMultipliedPolyName = getSubstring(str, start, range);
+			
+			struct polynomial* secondMultipliedPoly = polynomialList_getByName(polynomials, secondMultipliedPolyName, &i);
+			if (secondMultipliedPoly == NULL){
+				printf("unknown polynomial %s\n", secondMultipliedPolyName);
+				exitcode = -1;
+				break;
+			}
+			
+			struct polynomial* polyProduct = polynomial_multiply(firstMultipliedPoly,secondMultipliedPoly);
+			
+			polyProduct->name = calloc(1, sizeof(char*));
+			if (!(polyProduct->name)){
+				exitcode = -1;
+				printf ("allocation error\n");
+				break;
+			}
+			if (destinationName != NULL){
+				strcpy(polyProduct->name, destinationName);
+			}
+			if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
+				polynomialList_update(polynomials, polyProduct, i);
+				printf("updated %s\n", destinationName);
+				break;
+			}
+			else if (polynomialList_add(polynomials, polyProduct)){
+				printf("allocation error\n");
+				exitcode = -1;
+				break;
+				}
+			else{
+				printf("created %s\n", destinationName);
+				break;
+				}		
+		}
+		
+		regfree(&r);
+		free(firstMultipliedPolyName);
+		free(secondMultipliedPolyName);
+		free(destinationName);
+		exitcode = 0; /* compiled successfully*/
+	}
+	else {
+		regfree(&r);
+	}
+	return exitcode;
+}
+
+
 int derivation(char* str) {
 	regex_t r; 	
 	regmatch_t matches[2];
@@ -488,6 +754,7 @@ int derivation(char* str) {
 			struct polynomial* polyToDerive = polynomialList_getByName(polynomials, name, &i);
 			if (polyToDerive == NULL){
 				printf ("unknown polynomial %s\n",name);
+				regfree(&r);
 				free(name);
 				exitcode = -1;
 				break;
@@ -659,14 +926,34 @@ int executeCommand(char* command){
 	int isCompound = 0;
 	command = strtok(command, "\n");
 	
-	
-	
 	error = compundDerivation(command);
 	if (error == 0) {
 		isCompound = 1;
 	}
 	if (error != 1)
 		return error;
+	
+	error = compoundSum(command);
+	if (error == 0) {
+		isCompound = 1;
+	}
+	if (error != 1)
+		return error;
+	
+	error = compoundSubtraction(command);
+	if (error == 0) {
+		isCompound = 1;
+	}
+	if (error != 1)
+		return error;
+	
+	error = compoundMultiplication(command);
+	if (error == 0) {
+		isCompound = 1;
+	}
+	if (error != 1)
+		return error;
+	
 	
 	if(!isCompound) {
 
