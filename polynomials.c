@@ -184,7 +184,9 @@ int isPolynomial(const char* str){
 	compile_regex(&r, pattern);
     regmatch_t matches[1];
 	if (regexec(&r, str, 1, matches, 0) == 0)
+		regfree(&r);
 		return 1;
+	regfree(&r);
 	return 0;
 }
 
@@ -242,13 +244,15 @@ int isValidName(char* name){
 		exitCodeValid = 0;
 	}
 	
-	/* checks if name is identical to a legal command */
+	/* checks if name is identical to a legal command or to "x" */
 	int isCommandDer = strcmp(name, "der\0");
 	int isCommandEval = strcmp (name, "eval\0");
 	int isCommandQuit = strcmp (name, "quit\0");
-	if (isCommandDer==0 | isCommandEval==0 | isCommandQuit==0){
+	int isX = strcmp(name, "x\0");
+	if (isCommandDer==0 | isCommandEval==0 | isCommandQuit==0 | isX==0){
 		exitCodeValid = 0;
 	}
+	regfree(&r);
 	return exitCodeValid;
 }
 
@@ -260,7 +264,6 @@ int definePolynomial(char* str){
 	char* pattern = "\\s*(\\w*)\\s*=\\s*(.*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
-		printf("matched definePolynomial\n");
 		int start = matches[2].rm_so;
 		int range = matches[2].rm_eo-start;
 		char* polynomialString = getSubstring(str, start, range);
@@ -301,6 +304,10 @@ int definePolynomial(char* str){
 		free(polynomialString);		
 		exitcode = 0; /*compiled successfully*/
 	}
+	
+	else {
+		regfree(&r);
+	}
 	return exitcode;
 }
 
@@ -325,7 +332,6 @@ int summation(char* str){
 	char* pattern = "\\s*(\\w*)\\s*\\+\\s*(\\w*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
-		printf("matched summation\n");
 		char* name1;
 		char* name2;
 		int i;
@@ -358,6 +364,9 @@ int summation(char* str){
 		free(name2);
 		exitcode = 0; /*compiled successfully*/
 	}
+	else {
+		regfree(&r);
+	}
 	return exitcode;
 }
 
@@ -369,7 +378,6 @@ int subtraction(char* str){
 	char* pattern = "\\s*(\\w*)\\s*\\-\\s*(\\w*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
-		printf("matched subtraction\n");
 		char* name1;
 		char* name2;
 		int i;
@@ -402,6 +410,10 @@ int subtraction(char* str){
 		free(name2);
 		exitcode = 0; /*compiled successfully*/
 	}
+	
+	else {
+		regfree(&r);
+	}
 	return exitcode;
 }
 
@@ -413,7 +425,6 @@ int multiplication(char* str){
 	char* pattern = "\\s*(\\w*)\\s*\\*\\s*(\\w*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
-		printf("matched multiplication\n");
 		char* name1;
 		char* name2;
 		int i;
@@ -446,6 +457,10 @@ int multiplication(char* str){
 		free(name2);
 		exitcode = 0; /*compiled successfully*/
 	}
+	
+	else {
+		regfree(&r);
+	}
 	return exitcode;
 }
 
@@ -456,7 +471,6 @@ int derivation(char* str) {
 	char* pattern = "^der[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 2, matches, 0) == 0){
-		printf("matched derivation\n");
 		int i;
 		char* name;
 		while(1){	
@@ -478,6 +492,9 @@ int derivation(char* str) {
 			break;
 			}				
 		}
+	else {
+		regfree(&r);
+	}
 	return exitcode;
 }
 
@@ -489,7 +506,6 @@ int evaluation(char* str) {
 	char* pattern = "^eval[[:space:]]+(\\w*)[[:space:]]+([-]?[0-9]+\\.?[0-9]*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0){
-		printf("matched evaluation\n");
 		int i;
 		char* name;
 		float number;
@@ -519,6 +535,10 @@ int evaluation(char* str) {
 			break;
 			}				
 		}
+		
+	else {
+		regfree(&r);
+	}
 	return exitcode;
 }
 
@@ -555,8 +575,6 @@ int executeCommand(char* command){
 	error = printPolynomial(command);
 	if (error != 1)
 		return error;
-	
-	
 	
 	printf("unknown command\n");
 	return -2;
