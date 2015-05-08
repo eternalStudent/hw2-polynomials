@@ -10,7 +10,7 @@ struct polynomial* polynomial_new(char* name){
 	if (!p)
 		return NULL;
 	p->coefficients = arrayList_new(&free);
-	p->name = calloc(1, sizeof(char));
+	p->name = calloc(1, sizeof(char*));
 	if (!(p->name))
 		return NULL;
 	if (name != NULL)
@@ -134,6 +134,7 @@ struct polynomial* polynomial_multiply(struct polynomial* p1, struct polynomial*
 		float coefficient = polynomial_getCoefficient(p1, power);
 		struct polynomial* product = polynomial_multiplyByOneFactor(p2, coefficient, power);
 		struct polynomial* temp = polynomial_sum(sumOfProducts, product);
+		polynomial_free(product);
 		polynomial_free(sumOfProducts);
 		sumOfProducts = temp;
 	}

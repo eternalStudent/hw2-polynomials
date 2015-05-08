@@ -191,7 +191,7 @@ int isPolynomial(const char* str){
 }
 
 char* getSubstring(char* str, int i, int range){
-	char* substring = calloc(1, sizeof(char));
+	char* substring = calloc(1, sizeof(char*));
 	strncpy(substring, str+i, range);
 	return substring;
 }
@@ -356,6 +356,7 @@ int summation(char* str){
 			}
 			struct polynomial* sum = polynomial_sum(p1, p2);
 			polynomial_print(sum);
+			polynomial_free(sum);
 			exitcode = 0;
 			break;
 		}	
@@ -402,9 +403,11 @@ int subtraction(char* str){
 			}
 			struct polynomial* difference = polynomial_subtract(p1, p2);
 			polynomial_print(difference);
+			polynomial_free(difference);
 			exitcode = 0;
 			break;
 		}	
+		
 		regfree(&r);
 		free(name1);
 		free(name2);
@@ -449,9 +452,11 @@ int multiplication(char* str){
 			}
 			struct polynomial* product = polynomial_multiply(p1, p2);
 			polynomial_print(product);
+			polynomial_free(product);
 			exitcode = 0;
 			break;
 		}	
+		
 		regfree(&r);
 		free(name1);
 		free(name2);
@@ -486,6 +491,7 @@ int derivation(char* str) {
 			
 			struct polynomial* derivative = polynomial_derive(polyToDerive);	
 			polynomial_print(derivative);
+			polynomial_free(derivative);
 			regfree(&r);
 			free(name);
 			exitcode = 0;
@@ -517,7 +523,7 @@ int evaluation(char* str) {
 			start = matches[2].rm_so;
 			range = matches[2].rm_eo-start;
 			
-			const char* numberAsString = getSubstring(str, start, range);
+			char* numberAsString = getSubstring(str, start, range);
 			number = atof(numberAsString);
 			
 			struct polynomial* polyToEvaluate = polynomialList_getByName(polynomials, name, &i);
@@ -530,6 +536,7 @@ int evaluation(char* str) {
 			float evaluation = polynomial_evaluate(polyToEvaluate, number);	
 			printf("%.2f\n", evaluation);
 			regfree(&r);
+			free (numberAsString);
 			free(name);
 			exitcode = 0;
 			break;
