@@ -20,17 +20,50 @@ static int compile_regex (regex_t* r, const char* regex_text){
     return 0;
 }
 
+char* getSubstring(char* str, int i, int range){
+	char* substring = calloc(range+1, sizeof(char));
+	strncpy(substring, str+i, range);
+	return substring;
+}
+
+char* removeSpaces (char* str) {	
+	char* res = calloc(strlen(str)+1,sizeof(char));
+	int counter = 0;
+	do {
+		if (*str != ' '){
+			counter++;
+			*(res++) = *str;
+		}
+		} while (*(str++));
+	return res-counter;
+}
+
+
+
 int ax_POW_b(float* coefficient, int* power, const char* text){
 	regex_t r; 	
 	regmatch_t matches[3];
 	
-	char* pattern = "\\s*([\\+-]?[[:digit:]]+\\.?[[:digit:]]*)\\s*x\\s*\\^\\s*([[:digit:]]+)\\s*";
+	char* pattern = "\\s*([\\+-]?\\s*[[:digit:]]+\\.?[[:digit:]]*)\\s*x\\s*\\^\\s*([[:digit:]]+)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, text, 3, matches, 0) ==0 ){
+		
+		/* cleaning redundant spaces*/
+		char* textCopy = calloc(strlen(text)+1, sizeof(char));
+		strcpy(textCopy, text);
 		int start = matches[1].rm_so;
-		*coefficient = (float)atof(text+start);
+		int range = matches[1].rm_eo-start;	
+		char* coeffString;
+		coeffString = getSubstring(textCopy, start,range);
+		char* cleanCoeffString = removeSpaces(coeffString);
+		
+		*coefficient = (float)atof(cleanCoeffString);
 		start = matches[2].rm_so;
 		*power = (int)strtol(text+start, NULL, 10);
+		
+		free(textCopy);
+		free (coeffString);
+		free (cleanCoeffString);
 		regfree(&r);
 		return 0;
 	}
@@ -61,7 +94,7 @@ int M_x_POW_b(float* coefficient, int* power, const char* text){
 	regex_t r; 	
 	regmatch_t matches[2];
 	
-	char* pattern = "\\s*-x\\s*\\^\\s*([[:digit:]]+)\\s*";
+	char* pattern = "\\s*-\\s*x\\s*\\^\\s*([[:digit:]]+)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, text, 2, matches, 0) == 0) {
 		int start = matches[1].rm_so;
@@ -79,12 +112,26 @@ int ax(float* coefficient, int* power, const char* text){
 	regex_t r; 	
 	regmatch_t matches[2];
 	
-	char* pattern = "\\s*([\\+-]?[[:digit:]]+\\.?[[:digit:]]*)\\s*x\\s*";
+	char* pattern = "\\s*([\\+-]?\\s*[[:digit:]]+\\.?[[:digit:]]*)\\s*x\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, text, 2, matches, 0) == 0) {
+		
+		
+		/* cleaning redundant spaces*/
+		char* textCopy = calloc(strlen(text)+1, sizeof(char));
+		strcpy(textCopy, text);
 		int start = matches[1].rm_so;
-		*coefficient = (float)atof(text+start);
+		int range = matches[1].rm_eo-start;	
+		char* coeffString;
+		coeffString = getSubstring(textCopy, start,range);
+		char* cleanCoeffString = removeSpaces(coeffString);
+		
+		*coefficient = (float)atof(cleanCoeffString);
 		*power = 1;
+		
+		free(textCopy);
+		free(coeffString);
+		free(cleanCoeffString);
 		regfree(&r);
 		return 0;
 	}
@@ -131,14 +178,27 @@ int ax_POW_0(float* coefficient, int* power, const char* text){
 	regex_t r; 	
 	regmatch_t matches[2];
 	
-	char* pattern = "\\s*([\\+-]?[[:digit:]]+\\.?[[:digit:]]*)\\s*";
+	char* pattern = "\\s*([\\+-]?\\s*[[:digit:]]+\\.?[[:digit:]]*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, text, 2, matches, 0) == 0) {
+		
+		/* cleaning redundant spaces*/
+		char* textCopy = calloc(strlen(text)+1, sizeof(char));
+		strcpy(textCopy, text);
 		int start = matches[1].rm_so;
-		*coefficient = (float)atof(text+start);
+		int range = matches[1].rm_eo-start;	
+		char* coeffString;
+		coeffString = getSubstring(textCopy, start,range);
+		char* cleanCoeffString = removeSpaces(coeffString);
+		
+		*coefficient = (float)atof(cleanCoeffString);
 		*power = 0;
+		
+		free(textCopy);
+		free (coeffString);
+		free (cleanCoeffString);
 		regfree(&r);
-		return 0;
+		return 0;		
 	}
 	
 	regfree(&r);
@@ -190,12 +250,6 @@ int isPolynomial(const char* str){
 	return 0;
 }
 
-char* getSubstring(char* str, int i, int range){
-	char* substring = calloc(1, sizeof(char*));
-	strncpy(substring, str+i, range);
-	return substring;
-}
-
 struct polynomial* stringToPolynomial (char* name, char* str){
     struct polynomial* p = polynomial_new(name);
 	if (p == NULL){
@@ -203,7 +257,7 @@ struct polynomial* stringToPolynomial (char* name, char* str){
 		return p;
 	}
 	regex_t r;
-	char* pattern = "(\\s*[\\+-]?[[:digit:]]+\\.?[[:digit:]]*\\s*)|(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*)|(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*\\^\\s*[[:digit:]]+\\s*)";
+	char* pattern = "(\\s*[\\+-]?\\s*[[:digit:]]+\\.?[[:digit:]]*\\s*)|(\\s*[\\+-]?\\s*([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*)|(\\s*[\\+-]?\\s*([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*\\^\\s*[[:digit:]]+\\s*)";
 	compile_regex(&r, pattern);
 	const char* pos = str;
     regmatch_t match[1];
@@ -264,7 +318,6 @@ int definePolynomial(char* str){
 	char* pattern = "\\s*(\\w*)\\s*=\\s*(.*)\\s*";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
-		printf("matched define polynomial\n");
 		int start = matches[2].rm_so;
 		int range = matches[2].rm_eo-start;
 		char* polynomialString = getSubstring(str, start, range);
@@ -313,7 +366,6 @@ int definePolynomial(char* str){
 }
 
 int printPolynomial(char* name){
-	printf("entered printPolynomial\n");
 	if (!isValidName(name))
 		return 1;
 	int i;
@@ -341,15 +393,19 @@ int summation(char* str){
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
 			name1 = getSubstring(str, start, range);
+			
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo;
+			name2 = getSubstring(str, start, range);
+			
+			
 			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
 				exitcode = -1;
 				break;
 			}
-			start = matches[2].rm_so;
-			range = matches[2].rm_eo;
-			name2 = getSubstring(str, start, range);
+
 			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
@@ -383,7 +439,6 @@ int compoundSum(char* str){
 	char* pattern = "^([A-Za-z][A-Za-z0-9]*)[[:space:]]*=[[:space:]]*([A-Za-z][A-Za-z0-9]*)[[:space:]]*\\+[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 4, matches, 0) == 0 ){
-		printf("matched compound sum\n");
 		char* firstSummedPolyName;
 		char* secondSummedPolyName;
 		char* destinationName;
@@ -393,28 +448,27 @@ int compoundSum(char* str){
 			int range = matches[1].rm_eo-start;
 			destinationName = getSubstring(str, start, range);
 			
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo-start;
+			firstSummedPolyName = getSubstring(str, start, range);
+			
+			start = matches[3].rm_so;
+			range = matches[3].rm_eo-start;
+			secondSummedPolyName = getSubstring(str, start, range);
+			
 			if (!isValidName(destinationName)){
 				printf("illegal variable name\n");
 				exitcode = -1;
 				break;
 			}
 
-			
-			start = matches[2].rm_so;
-			range = matches[2].rm_eo-start;
-			firstSummedPolyName = getSubstring(str, start, range);
-			
 			struct polynomial* firstSummedPoly = polynomialList_getByName(polynomials, firstSummedPolyName, &i);
 			if (firstSummedPoly == NULL){
 				printf("unknown polynomial %s\n", firstSummedPolyName);
 				exitcode = -1;
 				break;
 			}
-			
-			start = matches[3].rm_so;
-			range = matches[3].rm_eo-start;
-			secondSummedPolyName = getSubstring(str, start, range);
-			
+					
 			struct polynomial* secondSummedPoly = polynomialList_getByName(polynomials, secondSummedPolyName, &i);
 			if (secondSummedPoly == NULL){
 				printf("unknown polynomial %s\n", secondSummedPolyName);
@@ -464,8 +518,6 @@ int compoundSum(char* str){
 }
 
 
-
-
 int subtraction(char* str){
 	regex_t r;
 	regmatch_t matches[3];
@@ -481,6 +533,11 @@ int subtraction(char* str){
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
 			name1 = getSubstring(str, start, range);
+			
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo;
+			name2 = getSubstring(str, start, range);
+			
 			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
@@ -488,15 +545,13 @@ int subtraction(char* str){
 				break;
 			}
 			
-			start = matches[2].rm_so;
-			range = matches[2].rm_eo;
-			name2 = getSubstring(str, start, range);
 			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
 				exitcode = -1;
 				break;
 			}
+						
 			struct polynomial* difference = polynomial_subtract(p1, p2);
 			polynomial_print(difference);
 			polynomial_free(difference);
@@ -525,7 +580,6 @@ int compoundSubtraction(char* str){
 	char* pattern = "^([A-Za-z][A-Za-z0-9]*)[[:space:]]*=[[:space:]]*([A-Za-z][A-Za-z0-9]*)[[:space:]]*-[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 4, matches, 0) == 0 ){
-		printf("matched compound subtraction\n");
 		char* firstSubtractedPolyName;
 		char* secondSubtractedPolyName;
 		char* destinationName;
@@ -618,15 +672,18 @@ int multiplication(char* str){
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
 			name1 = getSubstring(str, start, range);
+			
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo;
+			name2 = getSubstring(str, start, range);
+			
 			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
 				exitcode = -1;
 				break;
 			}
-			start = matches[2].rm_so;
-			range = matches[2].rm_eo;
-			name2 = getSubstring(str, start, range);
+
 			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
@@ -660,7 +717,6 @@ int compoundMultiplication(char* str){
 	char* pattern = "^([A-Za-z][A-Za-z0-9]*)[[:space:]]*=[[:space:]]*([A-Za-z][A-Za-z0-9]*)[[:space:]]*\\*[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 4, matches, 0) == 0 ){
-		printf("matched compound multiplication\n");
 		char* firstMultipliedPolyName;
 		char* secondMultipliedPolyName;
 		char* destinationName;
@@ -670,15 +726,20 @@ int compoundMultiplication(char* str){
 			int range = matches[1].rm_eo-start;
 			destinationName = getSubstring(str, start, range);
 			
+			
+			start = matches[2].rm_so;
+			range = matches[2].rm_eo-start;
+			firstMultipliedPolyName = getSubstring(str, start, range);
+			
+			start = matches[3].rm_so;
+			range = matches[3].rm_eo-start;
+			secondMultipliedPolyName = getSubstring(str, start, range);
+			
 			if (!isValidName(destinationName)){
 				printf("illegal variable name\n");
 				exitcode = -1;
 				break;
 			}
-	
-			start = matches[2].rm_so;
-			range = matches[2].rm_eo-start;
-			firstMultipliedPolyName = getSubstring(str, start, range);
 			
 			struct polynomial* firstMultipliedPoly = polynomialList_getByName(polynomials, firstMultipliedPolyName, &i);
 			if (firstMultipliedPoly == NULL){
@@ -686,11 +747,7 @@ int compoundMultiplication(char* str){
 				exitcode = -1;
 				break;
 			}
-			
-			start = matches[3].rm_so;
-			range = matches[3].rm_eo-start;
-			secondMultipliedPolyName = getSubstring(str, start, range);
-			
+						
 			struct polynomial* secondMultipliedPoly = polynomialList_getByName(polynomials, secondMultipliedPolyName, &i);
 			if (secondMultipliedPoly == NULL){
 				printf("unknown polynomial %s\n", secondMultipliedPolyName);
@@ -742,7 +799,7 @@ int derivation(char* str) {
 	regex_t r; 	
 	regmatch_t matches[2];
 	int exitcode = 1; /*did not match*/
-	char* pattern = "^der[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
+	char* pattern = "^der[[:space:]]+([A-Za-z][A-Za-z0-9]*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 2, matches, 0) == 0){
 		int i;
@@ -783,7 +840,6 @@ int compundDerivation (char* str){
 	char* pattern = "^([A-Za-z][A-Za-z0-9]*)[[:space:]]*=[[:space:]]*der[[:space:]]*([A-Za-z][A-Za-z0-9]*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0){
-		printf("matched compound derivation\n");
 		int i;
 		char* destinationName;
 		char* sourceName;
@@ -793,6 +849,10 @@ int compundDerivation (char* str){
 		int range = matches[1].rm_eo-start;
 		char* destinationName = getSubstring(str, start, range);
 		
+		start = matches[2].rm_so;
+		range = matches[2].rm_eo-start;
+		char* sourceName = getSubstring(str, start, range);
+		
 		if (!isValidName(destinationName)){
 				printf("illegal variable name\n");
 				free(destinationName);
@@ -801,11 +861,7 @@ int compundDerivation (char* str){
 				exitcode = -1;
 				break;
 			}
-				
-		start = matches[2].rm_so;
-		range = matches[2].rm_eo-start;
-		char* sourceName = getSubstring(str, start, range);
-		
+					
 		struct polynomial* source = polynomialList_getByName(polynomials, sourceName, &i);
 		if (source == NULL){
 			printf ("unknown polynomial %s\n",sourceName);

@@ -87,6 +87,9 @@ struct polynomial* polynomial_subtract(struct polynomial* p1, struct polynomial*
 	struct polynomial* subtraction;
 	subtraction = polynomial_new(NULL);
 	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
+	if (p1==p2) {  /* handling subtraction of polynomial from itself*/
+		rank = -1;
+	}
 	for (int power=0; power<=rank; power++){
 		float coefficient = polynomial_getCoefficient(p1, power)-polynomial_getCoefficient(p2, power);
 		polynomial_addCoefficient(subtraction, coefficient, power);
