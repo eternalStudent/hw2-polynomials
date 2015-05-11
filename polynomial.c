@@ -682,15 +682,11 @@ int multiplication(char* str){
 			break;
 		}	
 		
-		regfree(&r);
 		free(name1);
 		free(name2);
 		exitcode = 0; /*compiled successfully*/
 	}
-	
-	else {
-		regfree(&r);
-	}
+	regfree(&r);
 	return exitcode;
 }
 
@@ -756,15 +752,12 @@ int compoundMultiplication(char* str){
 				}		
 		}
 		
-		regfree(&r);
 		free(firstMultipliedPolyName);
 		free(secondMultipliedPolyName);
 		free(destinationName);
 		exitcode = 0; /* compiled successfully*/
 	}
-	else {
-		regfree(&r);
-	}
+	regfree(&r);
 	return exitcode;
 }
 
@@ -794,13 +787,10 @@ int derivation(char* str) {
 			break;
 			}			
 			
-		regfree(&r);
 		free(name);
 		exitcode = 0;
-		}
-	else {
-		regfree(&r);
 	}
+	regfree(&r);
 	return exitcode;
 }
 
@@ -826,9 +816,9 @@ int compoundDerivation (char* str){
 			sourceName = getSubstring(str, start, range);
 			
 			if (!isValidName(destinationName)){
-					printf("illegal variable name\n");	
-					break;
-				}
+				printf("illegal variable name\n");	
+				break;
+			}
 						
 			struct polynomial* source = polynomialList_getByName(polynomials, sourceName, &i);
 			
@@ -846,15 +836,14 @@ int compoundDerivation (char* str){
 			strcpy(derivative->name, destinationName);
 			
 			if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
-					polynomialList_update(polynomials, derivative, i);
-					printf("updated %s\n", destinationName);
-					break;
-
-				}
+				polynomialList_update(polynomials, derivative, i);
+				printf("updated %s\n", destinationName);
+				break;
+			}
 			else if (polynomialList_add(polynomials, derivative)){
 				printf("allocation error\n");	
 				break;
-				}
+			}
 			else{
 				printf("created %s\n", destinationName);
 				break;
@@ -865,15 +854,13 @@ int compoundDerivation (char* str){
 		free(destinationName);
 		free(sourceName);
 		regfree(&r);
-		exitcode = 0; /*compiled successfully*/
-			
+		exitcode = 0; /*compiled successfully*/	
 	}
 	
-else {
-	regfree(&r);
+	else {
+		regfree(&r);
 	}
-return exitcode;
-
+	return exitcode;
 }
 
 
@@ -908,7 +895,7 @@ int evaluation(char* str) {
 			float evaluation = polynomial_evaluate(polyToEvaluate, number);	
 			printf("%.2f\n", evaluation);
 			break;
-			}
+		}
 
 		regfree(&r);
 		free(name);
@@ -986,7 +973,7 @@ int executeCommand(char* command){
 		error = printPolynomial(command);
 		if (error != 1)
 			return error;
-		}
+	}
 	return -2;
 }
 
