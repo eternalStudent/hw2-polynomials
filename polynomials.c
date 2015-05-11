@@ -38,7 +38,7 @@ float polynomial_getCoefficient(struct polynomial *p, int power){
 void polynomial_print(struct polynomial *p){
 	int rank = polynomial_rank(p);
 	if (rank == -1){
-		printf("0\n");
+		printf("0.00\n");
 		return;
 	}
 	int first_non_zero = 0;
