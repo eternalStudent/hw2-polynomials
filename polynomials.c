@@ -75,6 +75,11 @@ static int max(int a, int b){
 struct polynomial* polynomial_sum(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* sum;
 	sum = polynomial_new(NULL);
+	
+	if(sum == NULL){ /*memory allocation error */
+		return sum;
+	}
+	
 	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
 	for (int power=0; power<=rank; power++){
 		float coefficient = polynomial_getCoefficient(p1, power)+polynomial_getCoefficient(p2, power);
@@ -86,6 +91,11 @@ struct polynomial* polynomial_sum(struct polynomial* p1, struct polynomial* p2){
 struct polynomial* polynomial_subtract(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* subtraction;
 	subtraction = polynomial_new(NULL);
+	
+	if(subtraction == NULL){ /*memory allocation error */
+		return subtraction;
+	}
+	
 	int rank = max(polynomial_rank(p1), polynomial_rank(p2));
 	if (p1==p2) {  /* handling subtraction of polynomial from itself*/
 		rank = -1;
@@ -100,6 +110,11 @@ struct polynomial* polynomial_subtract(struct polynomial* p1, struct polynomial*
 struct polynomial* polynomial_derive(struct polynomial* p){
 	struct polynomial* derivative;
 	derivative = polynomial_new(NULL);
+	
+	if(derivative == NULL){ /*memory allocation error */
+		return derivative;
+	}
+	
 	int rank = polynomial_rank(p);
 	for (int power=1; power<=rank; power++){
 		float coefficient = power*polynomial_getCoefficient(p, power);
@@ -121,6 +136,11 @@ float polynomial_evaluate(struct polynomial* p, float x){
 struct polynomial* polynomial_multiplyByOneFactor(struct polynomial* p, float factorCoefficient, int factorPower){
 	struct polynomial* product;
 	product = polynomial_new(NULL);
+	
+	if(product == NULL){ /*memory allocation error */
+		return product;
+	}
+	
 	int rank = polynomial_rank(p);
 	for (int power=0; power<=rank; power++){
 		float coefficient = polynomial_getCoefficient(p, power);
@@ -132,6 +152,11 @@ struct polynomial* polynomial_multiplyByOneFactor(struct polynomial* p, float fa
 struct polynomial* polynomial_multiply(struct polynomial* p1, struct polynomial* p2){
 	struct polynomial* sumOfProducts;
 	sumOfProducts = polynomial_new(NULL);
+	
+	if(sumOfProducts == NULL){ /*memory allocation error */
+		return sumOfProducts;
+	}
+	
 	int rank = polynomial_rank(p1);
 	for (int power=0; power<=rank; power++){
 		float coefficient = polynomial_getCoefficient(p1, power);
