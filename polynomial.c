@@ -247,12 +247,13 @@ int getFactor(float* coefficient, int* power, const char* text){
 
 int isPolynomial(const char* str){
 	regex_t r;
-	char* pattern = "(\\s*[\\+-]?[[:digit:]]+\\.?[[:digit:]]*\\s*)?\\s*(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*)?\\s*(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*\\^\\s*[[:digit:]]+\\s*)*";
+	char* pattern = "^((\\s*[\\+-]?[[:digit:]]+\\.?[[:digit:]]*\\s*)|(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*)|(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*\\^\\s*[[:digit:]]+\\s*))+$";
 	compile_regex(&r, pattern);
     regmatch_t matches[1];
-	if (regexec(&r, str, 1, matches, 0) == 0)
+	if (regexec(&r, str, 1, matches, 0) == 0){
 		regfree(&r);
 		return 1;
+	}	
 	regfree(&r);
 	return 0;
 }
@@ -345,13 +346,11 @@ int definePolynomial(char* str){
 			}
 			if (!isValidName(name)){
 				printf("illegal variable name\n");
-				exitcode = -1;
 				break;
 			}
 			struct polynomial* p = stringToPolynomial(name, polynomialString);
 			if (p == NULL){
 				printf("allocation error\n");
-				exitcode = -1;
 				break;
 			}
 			int i;
@@ -361,22 +360,18 @@ int definePolynomial(char* str){
 			}
 			else if (polynomialList_add(polynomials, p)){
 				printf("allocation error\n");
-				exitcode = -1;
 				break;
 			}
 			else
 				printf("created %s\n", name);
+			exitcode = 0; /*compiled successfully*/
 			break;
 		}
-		regfree(&r);
 		free(name);
 		free(polynomialString);		
-		exitcode = 0; /*compiled successfully*/
+		
 	}
-	
-	else {
-		regfree(&r);
-	}
+	regfree(&r);
 	return exitcode;
 }
 
@@ -915,6 +910,10 @@ int executeCommand(char* command){
 	int isCompound = 0;
 	command = strtok(command, "\n");
 	
+	error = definePolynomial(command);
+	if (error != 1)
+		return error;
+	
 	error = compoundDerivation(command);
 	if (error == 0) {
 		isCompound = 1;
@@ -946,10 +945,7 @@ int executeCommand(char* command){
 	
 	if(!isCompound) {
 
-		error = definePolynomial(command);
-		if (error != 1)
-			return error;
-	
+		
 		error = derivation(command);
 		if (error != 1)
 			return error;
