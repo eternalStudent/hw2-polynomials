@@ -384,8 +384,10 @@ int definePolynomial(char* str){
 }
 
 int printPolynomial(char* name){
-	if (!isValidName(name))
+	if (!isValidName(name)){
+		printf("illegal variable name\n");
 		return -1;
+	}
 	struct polynomial* p = polynomialList_getByName(polynomials, name, NULL);
 	if (p == NULL){
 		printf("unknown polynomial %s\n", name);
@@ -681,7 +683,6 @@ int multiplication(char* str){
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
 		char* name1;
 		char* name2;
-		int i;
 		while (1){
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
@@ -960,65 +961,73 @@ int executeCommand(char* command){
 	int error;
 	int isCompound = 0;
 	command = strtok(command, "\n");
-		
+	
+	
 	error = definePolynomial(command);
-		if (error != 1)
+		if (error != 1) {
 			return error;
+		}
+		
 
 	error = compoundDerivation(command);
 	if (error == 0) {
 		isCompound = 1;
 	}
-	if (error != 1)
+	if (error != 1) {
 		return error;
+	}
 	
 	error = compoundSum(command);
 	if (error == 0) {
 		isCompound = 1;
 	}
-	if (error != 1)
+	if (error != 1) {
 		return error;
+	}
 	
 	error = compoundSubtraction(command);
 	if (error == 0) {
 		isCompound = 1;
 	}
-	if (error != 1)
+	if (error != 1) {
 		return error;
-	
+	}
 	error = compoundMultiplication(command);
 	if (error == 0) {
 		isCompound = 1;
 	}
-	if (error != 1)
+	if (error != 1) {
 		return error;
+	}
 	
 	
 	if(!isCompound) {
 
 		error = derivation(command);
-		if (error != 1)
+		if (error != 1) {
 			return error;
-		
+		}
 		error = evaluation(command);
-		if (error != 1)
+		if (error != 1) {
 			return error;
-		
+		}
 		error = summation(command);
-		if (error != 1)
+		if (error != 1) {
 			return error;
-		
+		}
 		error = subtraction(command);
-		if (error != 1)
+		if (error != 1) {
 			return error;
-		
+		}
 		error = multiplication(command);
-		if (error != 1)
+		if (error != 1) {
 			return error;
-		
+		}
 		error = printPolynomial(command);
-		if (error != 1)
+		if (error != 1) {	
 			return error;
+		}
+			
 	}
 	return -2;
 }
