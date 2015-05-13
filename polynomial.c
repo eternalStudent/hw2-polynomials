@@ -363,6 +363,7 @@ int definePolynomial(char* str){
 				polynomialList_update(polynomials, p, i);
 				printf("updated %s\n", name);
 				exitcode = 0; /*compiled successfully*/
+				break;
 			}
 			else if (polynomialList_add(polynomials, p)){
 				printf("allocation error\n");
@@ -372,19 +373,13 @@ int definePolynomial(char* str){
 			else
 				printf("created %s\n", name);
 				exitcode = 0; /*compiled successfully*/
+				break;
 		}
 		free(name);
 		free(polynomialString);		
 		free(cleanPolynomialString);
 	}
-	
 	regfree(&r);
-	
-=======
-		
-	}
-	regfree(&r);
->>>>>>> origin/master
 	return exitcode;
 }
 
