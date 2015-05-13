@@ -349,19 +349,13 @@ int definePolynomial(char* str){
 			}
 			if (!isValidName(name)){
 				printf("illegal variable name\n");
-<<<<<<< HEAD
 				exitcode = 0; /*compiled successfully*/
-=======
->>>>>>> origin/master
 				break;
 			}
 			struct polynomial* p = stringToPolynomial(name, cleanPolynomialString);
 			if (p == NULL){
 				printf("allocation error\n");
-<<<<<<< HEAD
 				exitcode = -3;
-=======
->>>>>>> origin/master
 				break;
 			}
 			int i;
@@ -372,24 +366,15 @@ int definePolynomial(char* str){
 			}
 			else if (polynomialList_add(polynomials, p)){
 				printf("allocation error\n");
-<<<<<<< HEAD
 				exitcode = -3;
-=======
->>>>>>> origin/master
 				break;
 			}
 			else
 				printf("created %s\n", name);
-<<<<<<< HEAD
 				exitcode = 0; /*compiled successfully*/
-=======
-			exitcode = 0; /*compiled successfully*/
->>>>>>> origin/master
-			break;
 		}
 		free(name);
 		free(polynomialString);		
-<<<<<<< HEAD
 		free(cleanPolynomialString);
 	}
 	
@@ -986,18 +971,11 @@ int executeCommand(char* command){
 	int error;
 	int isCompound = 0;
 	command = strtok(command, "\n");
-	
-<<<<<<< HEAD
-	
+		
 	error = definePolynomial(command);
 		if (error != 1)
 			return error;
-=======
-	error = definePolynomial(command);
-	if (error != 1)
-		return error;
->>>>>>> origin/master
-	
+
 	error = compoundDerivation(command);
 	if (error == 0) {
 		isCompound = 1;
@@ -1029,10 +1007,6 @@ int executeCommand(char* command){
 	
 	if(!isCompound) {
 
-<<<<<<< HEAD
-=======
-		
->>>>>>> origin/master
 		error = derivation(command);
 		if (error != 1)
 			return error;
