@@ -14,7 +14,8 @@ struct polynomial* polynomialList_getByName(struct arrayList* polynomials, char*
 	for (int i=0; i<length; i++){
 		struct polynomial* p = (struct polynomial*)arrayList_get(polynomials, i);
 		if (strcmp(name, p->name) == 0){
-			*index = i;
+			if (index != NULL)
+				*index = i;
 			return p;
 		}	
 	}

@@ -247,7 +247,7 @@ int getFactor(float* coefficient, int* power, const char* text){
 
 int isPolynomial(const char* str){
 	regex_t r;
-	char* pattern = "^((\\s*[\\+-]?[[:digit:]]+\\.?[[:digit:]]*\\s*)|(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*)|(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*\\^\\s*[[:digit:]]+\\s*))+$";
+	char* pattern = "^((\\s*[\\+-]?[[:digit:]]+\\.?[[:digit:]]*\\s*)|(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*)|(\\s*[\\+-]?([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*\\^\\s*[[:digit:]]+\\s*))((\\s*[\\+-][[:digit:]]+\\.?[[:digit:]]*\\s*)|(\\s*[\\+-]([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*)|(\\s*[\\+-]([[:digit:]]+\\.?[[:digit:]]*)?\\s*x\\s*\\^\\s*[[:digit:]]+\\s*))*$";
 	compile_regex(&r, pattern);
     regmatch_t matches[1];
 	if (regexec(&r, str, 1, matches, 0) == 0){
@@ -386,8 +386,7 @@ int definePolynomial(char* str){
 int printPolynomial(char* name){
 	if (!isValidName(name))
 		return -1;
-	int i;
-	struct polynomial* p = polynomialList_getByName(polynomials, name, &i);
+	struct polynomial* p = polynomialList_getByName(polynomials, name, NULL);
 	if (p == NULL){
 		printf("unknown polynomial %s\n", name);
 		return -1;
@@ -406,7 +405,6 @@ int summation(char* str){
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
 		char* name1;
 		char* name2;
-		int i;
 		while (1){
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
@@ -416,15 +414,14 @@ int summation(char* str){
 			range = matches[2].rm_eo;
 			name2 = getSubstring(str, start, range);
 			
-			
-			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
+			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, NULL);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
 				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 
-			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
+			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, NULL);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
 				exitcode = 0; /*compiled successfully*/
@@ -485,14 +482,14 @@ int compoundSum(char* str){
 				break;
 			}
 
-			struct polynomial* firstSummedPoly = polynomialList_getByName(polynomials, firstSummedPolyName, &i);
+			struct polynomial* firstSummedPoly = polynomialList_getByName(polynomials, firstSummedPolyName, NULL);
 			if (firstSummedPoly == NULL){
 				printf("unknown polynomial %s\n", firstSummedPolyName);
 				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 					
-			struct polynomial* secondSummedPoly = polynomialList_getByName(polynomials, secondSummedPolyName, &i);
+			struct polynomial* secondSummedPoly = polynomialList_getByName(polynomials, secondSummedPolyName, NULL);
 			if (secondSummedPoly == NULL){
 				printf("unknown polynomial %s\n", secondSummedPolyName);
 				exitcode = 0; /*compiled successfully*/	
@@ -547,7 +544,6 @@ int subtraction(char* str){
 	if (regexec(&r, str, 3, matches, 0) == 0 ){
 		char* name1;
 		char* name2;
-		int i;
 		while (1){
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
@@ -557,14 +553,14 @@ int subtraction(char* str){
 			range = matches[2].rm_eo;
 			name2 = getSubstring(str, start, range);
 			
-			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
+			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, NULL);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
 				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 			
-			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
+			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, NULL);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
 				exitcode = 0; /*compiled successfully*/
@@ -627,7 +623,7 @@ int compoundSubtraction(char* str){
 				break;
 			}
 			
-			struct polynomial* firstSubtractedPoly = polynomialList_getByName(polynomials, firstSubtractedPolyName, &i);
+			struct polynomial* firstSubtractedPoly = polynomialList_getByName(polynomials, firstSubtractedPolyName, NULL);
 			if (firstSubtractedPoly == NULL){
 				printf("unknown polynomial %s\n", firstSubtractedPolyName);
 				exitcode = 0; /*compiled successfully*/	
@@ -635,7 +631,7 @@ int compoundSubtraction(char* str){
 			}
 			
 		
-			struct polynomial* secondSubtractedPoly = polynomialList_getByName(polynomials, secondSubtractedPolyName, &i);
+			struct polynomial* secondSubtractedPoly = polynomialList_getByName(polynomials, secondSubtractedPolyName, NULL);
 			if (secondSubtractedPoly == NULL){
 				printf("unknown polynomial %s\n", secondSubtractedPolyName);
 				exitcode = 0; /*compiled successfully*/	
@@ -695,14 +691,14 @@ int multiplication(char* str){
 			range = matches[2].rm_eo;
 			name2 = getSubstring(str, start, range);
 			
-			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
+			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, NULL);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
 				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 
-			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
+			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, NULL);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
 				exitcode = 0; /*compiled successfully*/
@@ -761,14 +757,14 @@ int compoundMultiplication(char* str){
 				break;
 			}
 			
-			struct polynomial* firstMultipliedPoly = polynomialList_getByName(polynomials, firstMultipliedPolyName, &i);
+			struct polynomial* firstMultipliedPoly = polynomialList_getByName(polynomials, firstMultipliedPolyName, NULL);
 			if (firstMultipliedPoly == NULL){
 				printf("unknown polynomial %s\n", firstMultipliedPolyName);
 				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 						
-			struct polynomial* secondMultipliedPoly = polynomialList_getByName(polynomials, secondMultipliedPolyName, &i);
+			struct polynomial* secondMultipliedPoly = polynomialList_getByName(polynomials, secondMultipliedPolyName, NULL);
 			if (secondMultipliedPoly == NULL){
 				printf("unknown polynomial %s\n", secondMultipliedPolyName);
 				exitcode = 0; /*compiled successfully*/	
@@ -813,14 +809,13 @@ int derivation(char* str) {
 	char* pattern = "^der[[:space:]]+(\\w*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 2, matches, 0) == 0){
-		int i;
 		char* name;
 		while(1){	
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
 			name = getSubstring(str, start, range);
 			
-			struct polynomial* polyToDerive = polynomialList_getByName(polynomials, name, &i);
+			struct polynomial* polyToDerive = polynomialList_getByName(polynomials, name, NULL);
 			if (polyToDerive == NULL){
 				printf ("unknown polynomial %s\n",name);
 				exitcode = 0;
@@ -873,15 +868,15 @@ int compoundDerivation (char* str){
 				exitcode = 0; /*compiled successfully*/					
 				break;
 			}
-						
-			struct polynomial* source = polynomialList_getByName(polynomials, sourceName, &i);
+			
+			struct polynomial* source = polynomialList_getByName(polynomials, sourceName, NULL);
 			
 			if (source == NULL){
 				printf ("unknown polynomial %s\n",sourceName);
 				exitcode = 0; /*compiled successfully*/					
 				break;
 			}
-				
+			
 			struct polynomial* derivative = polynomial_derive(source);
 			if (derivative == NULL){
 				printf ("allocation error\n");
@@ -925,7 +920,6 @@ int evaluation(char* str) {
 	char* pattern = "^eval[[:space:]]+(\\w*)[[:space:]]+([-]?[0-9]+\\.?[0-9]*)$";
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0){
-		int i;
 		char* name;
 		float number;
 		while(1){	
@@ -940,7 +934,7 @@ int evaluation(char* str) {
 			number = atof(numberAsString);
 			free (numberAsString);
 			
-			struct polynomial* polyToEvaluate = polynomialList_getByName(polynomials, name, &i);
+			struct polynomial* polyToEvaluate = polynomialList_getByName(polynomials, name, NULL);
 			if (polyToEvaluate == NULL){
 				printf ("unknown polynomial %s\n",name);
 				break;
