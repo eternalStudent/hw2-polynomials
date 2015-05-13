@@ -336,58 +336,61 @@ int definePolynomial(char* str){
 		int start = matches[2].rm_so;
 		int range = matches[2].rm_eo-start;
 		char* polynomialString = getSubstring(str, start, range);
+		char * cleanPolynomialString = removeSpaces(polynomialString);
+		
 		start = matches[1].rm_so;
 		range = matches[1].rm_eo - start;
 		char* name = getSubstring(str, start, range);
 		while(1){
-			if (!isPolynomial(polynomialString)){
+			if (!isPolynomial(cleanPolynomialString)){
+				exitcode = 1;
 				break;
 			}
 			if (!isValidName(name)){
 				printf("illegal variable name\n");
-				exitcode = -1;
+				exitcode = 0; /*compiled successfully*/
 				break;
 			}
-			struct polynomial* p = stringToPolynomial(name, polynomialString);
+			struct polynomial* p = stringToPolynomial(name, cleanPolynomialString);
 			if (p == NULL){
 				printf("allocation error\n");
-				exitcode = -1;
+				exitcode = -3;
 				break;
 			}
 			int i;
 			if (polynomialList_getByName(polynomials, name, &i) != NULL){
 				polynomialList_update(polynomials, p, i);
 				printf("updated %s\n", name);
+				exitcode = 0; /*compiled successfully*/
 			}
 			else if (polynomialList_add(polynomials, p)){
 				printf("allocation error\n");
-				exitcode = -1;
+				exitcode = -3;
 				break;
 			}
 			else
 				printf("created %s\n", name);
+				exitcode = 0; /*compiled successfully*/
 			break;
 		}
-		regfree(&r);
 		free(name);
 		free(polynomialString);		
-		exitcode = 0; /*compiled successfully*/
+		free(cleanPolynomialString);
 	}
 	
-	else {
-		regfree(&r);
-	}
+	regfree(&r);
+	
 	return exitcode;
 }
 
 int printPolynomial(char* name){
 	if (!isValidName(name))
-		return 1;
+		return -1;
 	int i;
 	struct polynomial* p = polynomialList_getByName(polynomials, name, &i);
 	if (p == NULL){
 		printf("unknown polynomial %s\n", name);
-		return 1;
+		return -1;
 	}	
 	polynomial_print(p);
 	return 0;
@@ -417,27 +420,35 @@ int summation(char* str){
 			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
+				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 
 			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
+				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 			struct polynomial* sum = polynomial_sum(p1, p2);
+			
+			if (sum == NULL){
+				printf("allocation error\n");
+				exitcode = -3;
+				break;
+			}
+		
 			polynomial_print(sum);
 			polynomial_free(sum);
+			exitcode = 0; /*compiled successfully*/
 			break;
 		}	
-		regfree(&r);
 		free(name1);
-		free(name2);
-		exitcode = 0; /*compiled successfully*/
+		free(name2);		
 	}
-	else {
-		regfree(&r);
-	}
+
+	regfree(&r);
+	
 	return exitcode;
 }
 
@@ -470,50 +481,58 @@ int compoundSum(char* str){
 			
 			if (!isValidName(destinationName)){
 				printf("illegal variable name\n");
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 
 			struct polynomial* firstSummedPoly = polynomialList_getByName(polynomials, firstSummedPolyName, &i);
 			if (firstSummedPoly == NULL){
 				printf("unknown polynomial %s\n", firstSummedPolyName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 					
 			struct polynomial* secondSummedPoly = polynomialList_getByName(polynomials, secondSummedPolyName, &i);
 			if (secondSummedPoly == NULL){
 				printf("unknown polynomial %s\n", secondSummedPolyName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			
 			struct polynomial* polySum = polynomial_sum(firstSummedPoly,secondSummedPoly);
+			if (polySum == NULL){
+				printf("allocation error\n");
+				exitcode = -3;
+				break;
+			}
+					
 			strcpy(polySum->name, destinationName);
 			
 			if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
 				polynomialList_update(polynomials, polySum, i);
 				printf("updated %s\n", destinationName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			else if (polynomialList_add(polynomials, polySum)){
 				printf("allocation error\n");
+				exitcode = -3;
 				break;
 				}
 			else{
 				printf("created %s\n", destinationName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 				}		
 		}
 		
-		regfree(&r);
 		free(firstSummedPolyName);
 		free(secondSummedPolyName);
 		free(destinationName);
-		exitcode = 0; /* compiled successfully*/
 
-}
-
-	else {
-		regfree(&r);
 	}
+	
+	regfree(&r);	
 	return exitcode;
 }
 
@@ -541,30 +560,37 @@ int subtraction(char* str){
 			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
+				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 			
 			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
+				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 						
 			struct polynomial* difference = polynomial_subtract(p1, p2);
+			
+			if (difference == NULL){
+				printf("allocation error\n");
+				exitcode = -3;
+				break;
+			}
+					
 			polynomial_print(difference);
 			polynomial_free(difference);
+			exitcode = 0; /*compiled successfully*/
 			break;
 		}	
-		
-		regfree(&r);
+	
 		free(name1);
 		free(name2);
-		exitcode = 0; /*compiled successfully*/
 	}
 	
-	else {
-		regfree(&r);
-	}
+	regfree(&r);
+	
 	return exitcode;
 }
 
@@ -597,12 +623,14 @@ int compoundSubtraction(char* str){
 			
 			if (!isValidName(destinationName)){
 				printf("illegal variable name\n");
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			
 			struct polynomial* firstSubtractedPoly = polynomialList_getByName(polynomials, firstSubtractedPolyName, &i);
 			if (firstSubtractedPoly == NULL){
 				printf("unknown polynomial %s\n", firstSubtractedPolyName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			
@@ -610,6 +638,7 @@ int compoundSubtraction(char* str){
 			struct polynomial* secondSubtractedPoly = polynomialList_getByName(polynomials, secondSubtractedPolyName, &i);
 			if (secondSubtractedPoly == NULL){
 				printf("unknown polynomial %s\n", secondSubtractedPolyName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			
@@ -620,27 +649,28 @@ int compoundSubtraction(char* str){
 			if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
 				polynomialList_update(polynomials, polyDifference, i);
 				printf("updated %s\n", destinationName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			else if (polynomialList_add(polynomials, polyDifference)){
 				printf("allocation error\n");
+				exitcode = -3;
 				break;
 				}
 			else{
 				printf("created %s\n", destinationName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 				}		
 		}
 		
-		regfree(&r);
 		free(firstSubtractedPolyName);
 		free(secondSubtractedPolyName);
 		free(destinationName);
-		exitcode = 0; /* compiled successfully*/
 	}
-	else {
-		regfree(&r);
-	}
+
+	regfree(&r);
+	
 	return exitcode;
 }
 
@@ -668,23 +698,32 @@ int multiplication(char* str){
 			struct polynomial* p1 = polynomialList_getByName(polynomials, name1, &i);
 			if (p1 == NULL){
 				printf("unknown polynomial %s\n", name1);
+				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 
 			struct polynomial* p2 = polynomialList_getByName(polynomials, name2, &i);
 			if (p2 == NULL){
 				printf("unknown polynomial %s\n", name2);
+				exitcode = 0; /*compiled successfully*/
 				break;
 			}
 			struct polynomial* product = polynomial_multiply(p1, p2);
+			
+			if (product == NULL){
+				printf("allocation error\n");
+				exitcode = -3;
+				break;
+			}
+					
 			polynomial_print(product);
 			polynomial_free(product);
+			exitcode = 0; /*compiled successfully*/
 			break;
 		}	
 		
 		free(name1);
 		free(name2);
-		exitcode = 0; /*compiled successfully*/
 	}
 	regfree(&r);
 	return exitcode;
@@ -718,18 +757,21 @@ int compoundMultiplication(char* str){
 			
 			if (!isValidName(destinationName)){
 				printf("illegal variable name\n");
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			
 			struct polynomial* firstMultipliedPoly = polynomialList_getByName(polynomials, firstMultipliedPolyName, &i);
 			if (firstMultipliedPoly == NULL){
 				printf("unknown polynomial %s\n", firstMultipliedPolyName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 						
 			struct polynomial* secondMultipliedPoly = polynomialList_getByName(polynomials, secondMultipliedPolyName, &i);
 			if (secondMultipliedPoly == NULL){
 				printf("unknown polynomial %s\n", secondMultipliedPolyName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			
@@ -740,14 +782,17 @@ int compoundMultiplication(char* str){
 			if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
 				polynomialList_update(polynomials, polyProduct, i);
 				printf("updated %s\n", destinationName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			else if (polynomialList_add(polynomials, polyProduct)){
 				printf("allocation error\n");
+				exitcode = -3;
 				break;
 				}
 			else{
 				printf("created %s\n", destinationName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 				}		
 		}
@@ -755,7 +800,6 @@ int compoundMultiplication(char* str){
 		free(firstMultipliedPolyName);
 		free(secondMultipliedPolyName);
 		free(destinationName);
-		exitcode = 0; /* compiled successfully*/
 	}
 	regfree(&r);
 	return exitcode;
@@ -775,21 +819,30 @@ int derivation(char* str) {
 			int start = matches[1].rm_so;
 			int range = matches[1].rm_eo-start;
 			name = getSubstring(str, start, range);
+			
 			struct polynomial* polyToDerive = polynomialList_getByName(polynomials, name, &i);
 			if (polyToDerive == NULL){
 				printf ("unknown polynomial %s\n",name);
+				exitcode = 0;
 				break;
 			}
 			
-			struct polynomial* derivative = polynomial_derive(polyToDerive);	
+			struct polynomial* derivative = polynomial_derive(polyToDerive);
+			
+			if (derivative == NULL){
+				printf("allocation error\n");
+				exitcode = -3;
+				break;
+			}
+			
 			polynomial_print(derivative);
 			polynomial_free(derivative);
+			exitcode = 0;
 			break;
 			}			
-			
 		free(name);
-		exitcode = 0;
 	}
+	
 	regfree(&r);
 	return exitcode;
 }
@@ -803,8 +856,8 @@ int compoundDerivation (char* str){
 	compile_regex(&r, pattern);
 	if (regexec(&r, str, 3, matches, 0) == 0){
 		int i;
-		char* destinationName = NULL;
-		char* sourceName = NULL;
+		char* destinationName;
+		char* sourceName;
 		while(1) {
 		
 			int start = matches[1].rm_so;
@@ -816,20 +869,23 @@ int compoundDerivation (char* str){
 			sourceName = getSubstring(str, start, range);
 			
 			if (!isValidName(destinationName)){
-				printf("illegal variable name\n");	
+				printf("illegal variable name\n");
+				exitcode = 0; /*compiled successfully*/					
 				break;
 			}
 						
 			struct polynomial* source = polynomialList_getByName(polynomials, sourceName, &i);
 			
 			if (source == NULL){
-				printf ("unknown polynomial %s\n",sourceName);	
+				printf ("unknown polynomial %s\n",sourceName);
+				exitcode = 0; /*compiled successfully*/					
 				break;
 			}
 				
 			struct polynomial* derivative = polynomial_derive(source);
 			if (derivative == NULL){
-				printf ("allocation error\n");	
+				printf ("allocation error\n");
+				exitcode = -3;
 				break;
 			}
 			
@@ -838,28 +894,26 @@ int compoundDerivation (char* str){
 			if (polynomialList_getByName(polynomials, destinationName, &i) != NULL){
 				polynomialList_update(polynomials, derivative, i);
 				printf("updated %s\n", destinationName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}
 			else if (polynomialList_add(polynomials, derivative)){
-				printf("allocation error\n");	
+				printf("allocation error\n");
+				exitcode = -3;	/* memory allocation error */			
 				break;
 			}
 			else{
 				printf("created %s\n", destinationName);
+				exitcode = 0; /*compiled successfully*/	
 				break;
 			}	
-		
-		}		
-		
+		}			
 		free(destinationName);
 		free(sourceName);
-		regfree(&r);
-		exitcode = 0; /*compiled successfully*/	
 	}
 	
-	else {
-		regfree(&r);
-	}
+	regfree(&r);
+
 	return exitcode;
 }
 
@@ -888,7 +942,7 @@ int evaluation(char* str) {
 			
 			struct polynomial* polyToEvaluate = polynomialList_getByName(polynomials, name, &i);
 			if (polyToEvaluate == NULL){
-				printf ("unknown polynomial %s\n",name);;
+				printf ("unknown polynomial %s\n",name);
 				break;
 			}
 			
@@ -897,14 +951,12 @@ int evaluation(char* str) {
 			break;
 		}
 
-		regfree(&r);
 		free(name);
 		exitcode = 0;			
 	}
 		
-	else {
-		regfree(&r);
-	}
+	regfree(&r);
+	
 	return exitcode;
 }
 
@@ -914,6 +966,11 @@ int executeCommand(char* command){
 	int error;
 	int isCompound = 0;
 	command = strtok(command, "\n");
+	
+	
+	error = definePolynomial(command);
+		if (error != 1)
+			return error;
 	
 	error = compoundDerivation(command);
 	if (error == 0) {
@@ -946,10 +1003,6 @@ int executeCommand(char* command){
 	
 	if(!isCompound) {
 
-		error = definePolynomial(command);
-		if (error != 1)
-			return error;
-	
 		error = derivation(command);
 		if (error != 1)
 			return error;
@@ -998,6 +1051,10 @@ int main(){
 		error = executeCommand(command);
 		if (error == -2)	
 			printf("error reading command\n");
+		
+		if(error == -3) { /* memory allocation error */
+			break;
+		}
 	}
 	polynomialList_free(polynomials);
 	return 0;
